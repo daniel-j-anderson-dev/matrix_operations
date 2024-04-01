@@ -18,12 +18,12 @@ impl<E> IndexMut<usize> for Matrix<E> {
     }
 }
 
-impl<E: Copy, const W: usize, const H: usize> From<[[E; W]; H]> for Matrix<E> {
+impl<E, const W: usize, const H: usize> From<[[E; W]; H]> for Matrix<E> {
     fn from(value: [[E; W]; H]) -> Self {
         return Matrix {
             elements: value
-                .iter()
-                .map(|row| row.iter().cloned().collect())
+                .into_iter()
+                .map(|row| row.into_iter().collect())
                 .collect(),
             width: W,
             height: H,
