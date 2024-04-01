@@ -109,35 +109,6 @@ impl MatrixError {
             Ok(())
         };
     }
-
-    /// Use this to check if a matrix, and index pair form a valid minor <br>
-    /// ## Parameters
-    /// - `matrix`: Matrix to find cofactor from.
-    /// - `row_index`: index into `matrix`.
-    /// - `column_index`: index into `matrix`.
-    /// ## Returns
-    /// - <b>UnitType ()</b>
-    ///   - if there exists a determinant of `matrix`
-    /// ## Errors
-    /// - [MatrixError::NoCofactor]
-    ///   - if `matrix.width` != `matrix.height`
-    pub fn cofactor<E>(
-        matrix: &Matrix<E>,
-        row_index: usize,
-        column_index: usize,
-    ) -> Result<(), Self> {
-        return if matrix.width() != matrix.height() {
-            Err(MatrixError::Determinant(MinorError::NotSquare))
-        } else if row_index >= matrix.height() {
-            Err(MatrixError::Determinant(MinorError::NoSuchRow(row_index)))
-        } else if column_index >= matrix.width() {
-            Err(MatrixError::Determinant(MinorError::NoSuchColumn(
-                column_index,
-            )))
-        } else {
-            Ok(())
-        };
-    }
 }
 
 #[derive(Debug, PartialEq, Error)]
