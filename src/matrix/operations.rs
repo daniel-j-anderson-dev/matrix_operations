@@ -124,4 +124,8 @@ impl<E: Num + Copy> Matrix<E> {
 
         return Ok(minor);
     }
+
+    pub fn determinant (&self) -> E {
+        unimplemented!()
+    }
 }
