@@ -90,7 +90,7 @@ fn matrix_minor_ok() {
     ]);
 
     let expected_minor = Matrix::from([
-        [ -2.5, 0.6, 0.0],
+        [ -2.5, 0.6, 0.0], //
         [ 1.1, -2.2, -0.1],
         [ 1.2, -0.5, 1.0],
     ]);
@@ -103,7 +103,7 @@ fn matrix_minor_ok() {
 #[test]
 fn matrix_minor_err() {
     let matrix = Matrix::from([
-        [0.5, 1.2, 1.22, -2.1],
+        [0.5, 1.2, 1.22, -2.1], //
         [-1.1, -2.5, 0.6, 0.0],
     ]);
 
