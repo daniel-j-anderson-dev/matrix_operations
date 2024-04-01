@@ -23,7 +23,7 @@ impl<E: Copy, const W: usize, const H: usize> From<[[E; W]; H]> for Matrix<E> {
         return Matrix {
             elements: value
                 .iter()
-                .map(|row| row.iter().cloned().collect::<Box<[E]>>())
+                .map(|row| row.iter().cloned().collect())
                 .collect(),
             width: W,
             height: H,
