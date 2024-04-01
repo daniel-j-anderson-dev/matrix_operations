@@ -82,7 +82,7 @@ impl<E: Num + Copy> Matrix<E> {
     /// Constructs the minor <br>
     /// The matrix that remains after excluding a row and excluding a column.
     /// ## Returns
-    /// - The minor [Matrix] corresponding to `self[excluded_row_index][excluded_column_index]`.
+    /// - The [minor](https://en.wikipedia.org/wiki/Minor_(linear_algebra)) [Matrix] corresponding to `self[excluded_row_index][excluded_column_index]`.
     /// ## Errors
     /// - [MatrixError::InvalidMinor]
     ///   - if `self.width` != `rhs.height`
