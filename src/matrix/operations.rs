@@ -76,7 +76,11 @@ impl<E: Num + Copy> Matrix<E> {
                     continue;
                 }
 
-                if let Some(minor_element) = minor.elements.get_mut(minor_row_index).and_then(|row| row.get_mut(minor_column_index)) {
+                if let Some(minor_element) = minor
+                    .elements
+                    .get_mut(minor_row_index)
+                    .and_then(|row| row.get_mut(minor_column_index))
+                {
                     *minor_element = self[self_row_index][self_column_index];
                 }
 
