@@ -18,8 +18,15 @@ pub enum MatrixError {
 }
 impl MatrixError {
     /// Check if two matrices can be multiplied <br>
-    /// Ensures that
-    /// - `lhs.width` == `rhs.height`
+    /// ## Parameters
+    /// - `lhs`: light hand side of a matrix product.
+    /// - `rhs`: right hand side of a matrix product.
+    /// ## Returns
+    /// - <b>UnitType ()</b>
+    ///   - if `lhs` and `rhs` can be multiplied
+    /// ## Errors
+    /// - [MatrixError::InvalidDimensions]
+    ///   - if `lhs.width` != `rhs.height`
     pub fn multiplication<E>(lhs: &Matrix<E>, rhs: &Matrix<E>) -> Result<(), Self> {
         return if lhs.width() == rhs.height() {
             Ok(())
@@ -33,10 +40,18 @@ impl MatrixError {
             })
         };
     }
+    
     /// Check if two matrices can be added <br>
-    /// Ensures that
-    /// - `lhs.width` == `rhs.width`
-    /// - `lhs.height` == `rhs.height`
+    /// ## Parameters
+    /// - `lhs`: light hand side of a matrix sum.
+    /// - `rhs`: right hand side of a matrix sum.
+    /// ## Returns
+    /// - <b>UnitType ()</b>
+    ///   - if `lhs` and `rhs` can be added
+    /// ## Errors
+    /// - [MatrixError::InvalidDimensions]
+    ///   - if `lhs.width` != `rhs.width`
+    ///   - if `lhs.height` != `rhs.height`
     pub fn addition<E>(lhs: &Matrix<E>, rhs: &Matrix<E>) -> Result<(), Self> {
         return if lhs.width() == rhs.width() || lhs.height() == rhs.height() {
             Ok(())
@@ -50,11 +65,20 @@ impl MatrixError {
             })
         };
     }
+
     /// Use this to check if a matrix, and index pair form a valid minor <br>
-    /// Ensures that
-    /// - `excluded_row_index` is valid
-    /// - `excluded_column_index` is valid
-    /// - `matrix.width` == `matrix.height`
+    /// ## Parameters
+    /// - `matrix`: Matrix to take a minor from.
+    /// - `excluded_row_index`: the index of row to leave out form this minor.
+    /// - `excluded_column_index`: the index of column to leave out form this minor.
+    /// ## Returns
+    /// - <b>UnitType ()</b>
+    ///   - if there exists a minor of `matrix` at the corresponding indexes
+    /// ## Errors
+    /// - [MatrixError::InvalidDimensions]
+    ///   - if `excluded_row_index` >= `matrix.height`
+    ///   - if `excluded_column_index` >= `matrix.width`
+    ///   - if `matrix.width` != `matrix.height`
     pub fn minor<E>(
         matrix: &Matrix<E>,
         excluded_row_index: usize,
