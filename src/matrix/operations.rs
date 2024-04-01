@@ -125,7 +125,8 @@ impl<E: Num + Copy> Matrix<E> {
         return Ok(minor);
     }
 
-    pub fn determinant (&self) -> E {
-        unimplemented!()
+    pub fn determinant (&self) -> Result<E, MatrixError> {
+        MatrixError::determinant(self)?;
+        unimplemented!();
     }
 }

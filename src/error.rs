@@ -15,6 +15,9 @@ pub enum MatrixError {
 
     #[error("There is no minor because {0}")]
     InvalidMinor(MatrixMinorError),
+    
+    #[error("There is no Determinant because the matrix is not square")]
+    NoDeterminant,
 }
 impl MatrixError {
     /// Check if two matrices can be multiplied <br>
@@ -28,9 +31,7 @@ impl MatrixError {
     /// - [MatrixError::InvalidDimensions]
     ///   - if `lhs.width` != `rhs.height`
     pub fn multiplication<E>(lhs: &Matrix<E>, rhs: &Matrix<E>) -> Result<(), Self> {
-        return if lhs.width() == rhs.height() {
-            Ok(())
-        } else {
+        return if lhs.width() != rhs.height() {
             Err(MatrixError::InvalidDimensions {
                 operation: MatrixOperation::Multiplication,
                 lhs_width: lhs.width(),
@@ -38,6 +39,8 @@ impl MatrixError {
                 rhs_width: rhs.width(),
                 rhs_height: rhs.height(),
             })
+        } else {
+            Ok(())
         };
     }
     
@@ -53,9 +56,7 @@ impl MatrixError {
     ///   - if `lhs.width` != `rhs.width`
     ///   - if `lhs.height` != `rhs.height`
     pub fn addition<E>(lhs: &Matrix<E>, rhs: &Matrix<E>) -> Result<(), Self> {
-        return if lhs.width() == rhs.width() || lhs.height() == rhs.height() {
-            Ok(())
-        } else {
+        return if lhs.width() != rhs.width() || lhs.height() == rhs.height() {
             Err(MatrixError::InvalidDimensions {
                 operation: MatrixOperation::Addition,
                 lhs_width: lhs.width(),
@@ -63,6 +64,8 @@ impl MatrixError {
                 rhs_width: rhs.width(),
                 rhs_height: rhs.height(),
             })
+        } else {
+            Ok(())
         };
     }
 
@@ -94,6 +97,23 @@ impl MatrixError {
             )))
         } else if matrix.width() != matrix.height() {
             Err(MatrixError::InvalidMinor(MatrixMinorError::NotSquare))
+        } else {
+            Ok(())
+        };
+    }
+
+    /// Use this to check if a matrix, and index pair form a valid minor <br>
+    /// ## Parameters
+    /// - `matrix`: Matrix to take the determinate of.
+    /// ## Returns
+    /// - <b>UnitType ()</b>
+    ///   - if there exists a determinant of `matrix`
+    /// ## Errors
+    /// - [MatrixError::NoDeterminant]
+    ///   - if `matrix.width` != `matrix.height`
+    pub fn determinant<E>(matrix: &Matrix<E>) -> Result<(), Self> {
+        return if matrix.width() != matrix.height() {
+            Err(MatrixError::NoDeterminant)
         } else {
             Ok(())
         };
