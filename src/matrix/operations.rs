@@ -1,4 +1,6 @@
-use num::Num;
+use std::ops::Neg;
+
+use num::{pow::Pow, Num};
 
 use crate::{Matrix, MatrixError};
 
@@ -8,10 +10,10 @@ impl<E: Num + Copy> Matrix<E> {
     /// ## Parameters
     /// - `rhs`: right hand side of product matrix.
     /// ## Returns
-    /// - The product [Matrix]. 
+    /// - The product [Matrix].
     /// ## Errors
     /// - [MatrixError::InvalidDimensions]
-    ///   - if `self.width` != `rhs.height` 
+    ///   - if `self.width` != `rhs.height`
     pub fn matrix_multiply(&self, rhs: &Self) -> Result<Self, MatrixError> {
         MatrixError::multiplication(self, rhs)?;
 
@@ -42,7 +44,7 @@ impl<E: Num + Copy> Matrix<E> {
     /// ## Parameters
     /// - `scalar`: a scalar value to be multiplied.
     /// ## Returns
-    /// - The scalar product [Matrix]. 
+    /// - The scalar product [Matrix].
     pub fn scalar_multiply(&self, scalar: E) -> Self {
         let mut product = Self::zeros(self.width, self.height);
 
@@ -124,9 +126,55 @@ impl<E: Num + Copy> Matrix<E> {
 
         return Ok(minor);
     }
+}
 
-    pub fn determinant (&self) -> Result<E, MatrixError> {
+impl<E: Num + Neg<Output = E> + Copy> Matrix<E> {
+    /// Constructs the determinant <br>
+    /// <img src="https://i.imgur.com/0mAVFR3.png" width=50% height=50%> <br>
+    /// cofactor == `(-1)ⁱ+ʲ * Mᵢⱼ`
+    /// ## Returns
+    /// - The determinant.
+    /// ## Errors
+    /// - [MatrixError::NoDeterminant]
+    ///   - if `self.width` != `rhs.height`
+    pub fn cofactor(&self, row_index: usize, column_index: usize) -> Result<E, MatrixError> {
+        MatrixError::cofactor(self, row_index, column_index)?;
+
+        let sign = if row_index + column_index % 2 == 0 {
+            -E::one()
+        } else {
+            E::one()
+        };
+
+        return Ok(self
+            .minor(row_index,   column_index)?
+            .scalar_multiply(sign)
+            .determinant()?);
+    }
+
+    /// Constructs the determinant <br>
+    /// <img src="https://i.imgur.com/0mAVFR3.png" width=50% height=50%> <br>
+    /// - `i`: row_index
+    /// - `j`: column_index
+    /// - `Mᵢⱼ`: `self.minor(i, j).determinant()`.
+    /// - `(-1)ⁱ+ʲ * Mᵢⱼ`: `self.cofactor(i, j)`
+    /// ## Returns
+    /// - The determinant.
+    /// ## Errors
+    /// - [MatrixError::NoDeterminant]
+    ///   - if `self.width` != `rhs.height`
+    pub fn determinant(&self) -> Result<E, MatrixError> {
         MatrixError::determinant(self)?;
-        unimplemented!();
+
+        let mut sum = E::zero();
+
+        for row_index in 0..self.height {
+            for column_index in 0..self.width {
+                let cofactor = self.cofactor(row_index, column_index)?;
+                sum = sum + (cofactor * self[row_index][column_index]);
+            }
+        }
+
+        return Ok(sum);
     }
 }

@@ -16,6 +16,9 @@ impl<E> Matrix<E> {
     pub fn rows(&self) -> impl Iterator<Item = &[E]> {
         return self.elements.iter().map(Box::as_ref);
     }
+    pub fn elements(&self) -> impl Iterator<Item = &E> {
+        return self.elements.iter().flat_map(|row| row.iter());
+    }
 }
 impl<E: Num + Copy> Matrix<E> {
     pub fn zeros(width: usize, height: usize) -> Self {

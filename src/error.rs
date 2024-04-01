@@ -15,9 +15,12 @@ pub enum MatrixError {
 
     #[error("There is no minor because {0}")]
     InvalidMinor(MatrixMinorError),
-    
+
     #[error("There is no Determinant because the matrix is not square")]
     NoDeterminant,
+
+    #[error("There is no Cofactor because the index is invalid")]
+    NoCofactor,
 }
 impl MatrixError {
     /// Check if two matrices can be multiplied <br>
@@ -43,7 +46,7 @@ impl MatrixError {
             Ok(())
         };
     }
-    
+
     /// Check if two matrices can be added <br>
     /// ## Parameters
     /// - `lhs`: light hand side of a matrix sum.
@@ -112,6 +115,25 @@ impl MatrixError {
     /// - [MatrixError::NoDeterminant]
     ///   - if `matrix.width` != `matrix.height`
     pub fn determinant<E>(matrix: &Matrix<E>) -> Result<(), Self> {
+        return if matrix.width() != matrix.height() {
+            Err(MatrixError::NoDeterminant)
+        } else {
+            Ok(())
+        };
+    }
+
+    /// Use this to check if a matrix, and index pair form a valid minor <br>
+    /// ## Parameters
+    /// - `matrix`: Matrix to find cofactor from.
+    /// - `row_index`: index into `matrix`.
+    /// - `column_index`: index into `matrix`.
+    /// ## Returns
+    /// - <b>UnitType ()</b>
+    ///   - if there exists a determinant of `matrix`
+    /// ## Errors
+    /// - [MatrixError::NoCofactor]
+    ///   - if `matrix.width` != `matrix.height`
+    pub fn cofactor<E>(matrix: &Matrix<E>, row_index: usize, column_index: usize) -> Result<(), Self> {
         return if matrix.width() != matrix.height() {
             Err(MatrixError::NoDeterminant)
         } else {
