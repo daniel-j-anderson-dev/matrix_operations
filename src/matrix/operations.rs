@@ -1,4 +1,4 @@
-use std::ops::Neg;
+use std::{fmt::Debug, ops::Neg};
 
 use num::Num;
 
@@ -12,7 +12,7 @@ impl<E: Num + Copy> Matrix<E> {
     /// ## Returns
     /// - The product [Matrix].
     /// ## Errors
-    /// - [MatrixError::InvalidDimensions]
+    /// - [MatrixError::Arithmetic]
     ///   - if `self.width` != `rhs.height`
     pub fn matrix_multiply(&self, rhs: &Self) -> Result<Self, MatrixError> {
         MatrixError::multiplication(self, rhs)?;
@@ -64,7 +64,7 @@ impl<E: Num + Copy> Matrix<E> {
     /// ## Returns
     /// - The sum [Matrix].
     /// ## Errors
-    /// - [MatrixError::InvalidDimensions]
+    /// - [MatrixError::Arithmetic]
     ///   - if `self` and `rhs` are not the same dimensions
     pub fn add(&self, rhs: &Self) -> Result<Self, MatrixError> {
         MatrixError::addition(self, rhs)?;
@@ -128,14 +128,13 @@ impl<E: Num + Copy> Matrix<E> {
     }
 }
 
-impl<E: Num + Neg<Output = E> + Copy> Matrix<E> {
-    /// Constructs the determinant <br>
+impl<E: Num + Neg<Output = E> + Copy + Debug> Matrix<E> {
+    /// Constructs the cofactor <br>
     /// <img src="https://i.imgur.com/0mAVFR3.png" width=50% height=50%> <br>
-    /// cofactor == `(-1)ⁱ+ʲ * Mᵢⱼ`
-    /// ## Returns
-    /// - The determinant.
+    /// - `cofactor` == `(-1)ⁱ⁺ʲ * Mᵢⱼ`
+    /// - `Mᵢⱼ` == `self.minor(i, j).determinant()`.
     /// ## Errors
-    /// - [MatrixError::NoDeterminant]
+    /// - [MatrixError::Determinant]
     ///   - if `self.width` != `rhs.height`
     pub fn cofactor(&self, row_index: usize, column_index: usize) -> Result<E, MatrixError> {
         let sign = if row_index + column_index % 2 == 0 {
@@ -144,22 +143,22 @@ impl<E: Num + Neg<Output = E> + Copy> Matrix<E> {
             E::one()
         };
 
-        return Ok(self
-            .minor(row_index, column_index)?
-            .scalar_multiply(sign)
-            .determinant()?);
+        let minor = self.minor(row_index, column_index)?;
+
+        let cofactor = minor.scalar_multiply(sign).determinant()?;
+
+        return Ok(cofactor);
     }
 
     /// Constructs the determinant <br>
     /// <img src="https://i.imgur.com/0mAVFR3.png" width=50% height=50%> <br>
-    /// - `i`: row_index
-    /// - `j`: column_index
-    /// - `Mᵢⱼ`: `self.minor(i, j).determinant()`.
-    /// - `(-1)ⁱ+ʲ * Mᵢⱼ`: `self.cofactor(i, j)`
+    /// - `determinant` == `Σ(1..=n) { (-1)ⁱ⁺ʲ * Mᵢⱼ * aᵢⱼ }`
+    /// - `(-1)ⁱ⁺ʲ * Mᵢⱼ` == `self.cofactor(i, j)`
+    /// - `aᵢⱼ` == element at `self[i][j]`
     /// ## Returns
     /// - The determinant.
     /// ## Errors
-    /// - [MatrixError::NoDeterminant]
+    /// - [MatrixError::Determinant]
     ///   - if `self.width` != `rhs.height`
     pub fn determinant(&self) -> Result<E, MatrixError> {
         MatrixError::determinant(self)?;
