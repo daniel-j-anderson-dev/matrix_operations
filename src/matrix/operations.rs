@@ -65,12 +65,12 @@ impl<E: Num + Copy> Matrix<E> {
         let mut minor = Self::zeros(self.width - 1, self.height - 1);
 
         let mut minor_row_index = 0;
-        let mut minor_column_index = 0;
-
         for self_row_index in 0..self.height {
             if self_row_index == excluded_row_index {
                 continue;
             }
+
+            let mut minor_column_index = 0;
             for self_column_index in 0..self.width {
                 if self_column_index == excluded_column_index {
                     continue;
@@ -86,7 +86,6 @@ impl<E: Num + Copy> Matrix<E> {
 
                 minor_column_index += 1;
             }
-            minor_column_index = 0;
 
             minor_row_index += 1;
         }
