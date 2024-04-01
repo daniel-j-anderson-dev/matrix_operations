@@ -90,9 +90,9 @@ fn matrix_minor_ok() {
     ]);
 
     let expected_minor = Matrix::from([
-        [ -2.5, 0.6, 0.0], //
-        [ 1.1, -2.2, -0.1],
-        [ 1.2, -0.5, 1.0],
+        [-2.5, 0.6, 0.0], //
+        [1.1, -2.2, -0.1],
+        [1.2, -0.5, 1.0],
     ]);
 
     let minor = matrix.minor(0, 0).unwrap();
