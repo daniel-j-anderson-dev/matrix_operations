@@ -3,7 +3,16 @@ use num::Num;
 use crate::{Matrix, MatrixError};
 
 impl<E: Num + Copy> Matrix<E> {
-    pub fn matrix_multiply(&self, rhs: &Self) -> Result<Matrix<E>, MatrixError> {
+    /// Calculate the matrix product of `self` and `rhs`. <br>
+    /// element wise dot product of `self`'s rows and `rhs`'s columns.
+    /// ## Parameters
+    /// - `rhs`: right hand side of product matrix.
+    /// ## Returns
+    /// - The product [Matrix]. 
+    /// ## Errors
+    /// - [MatrixError::InvalidDimensions]
+    ///   - if `self.width` != `rhs.height` 
+    pub fn matrix_multiply(&self, rhs: &Self) -> Result<Self, MatrixError> {
         MatrixError::multiplication(self, rhs)?;
 
         let mut product = Matrix::zeros(rhs.width, self.height);
@@ -28,6 +37,12 @@ impl<E: Num + Copy> Matrix<E> {
         return Ok(product);
     }
 
+    /// Calculate the scalar product of `self` and `scalar`. <br>
+    /// each element of `self` is multiplied by `scalar`.
+    /// ## Parameters
+    /// - `scalar`: a scalar value to be multiplied.
+    /// ## Returns
+    /// - The scalar product [Matrix]. 
     pub fn scalar_multiply(&self, scalar: E) -> Self {
         let mut product = Self::zeros(self.width, self.height);
 
@@ -40,6 +55,15 @@ impl<E: Num + Copy> Matrix<E> {
         return product;
     }
 
+    /// Calculate the matrix sum of `self` and `rhs`. <br>
+    /// element wise addition of `self` and `rhs`.
+    /// ## Parameters
+    /// - `rhs`: right hand side of sum matrix.
+    /// ## Returns
+    /// - The sum [Matrix].
+    /// ## Errors
+    /// - [MatrixError::InvalidDimensions]
+    ///   - if `self` and `rhs` are not the same dimensions
     pub fn add(&self, rhs: &Self) -> Result<Self, MatrixError> {
         MatrixError::addition(self, rhs)?;
 
@@ -55,6 +79,14 @@ impl<E: Num + Copy> Matrix<E> {
         return Ok(sum);
     }
 
+    /// Constructs the minor <br>
+    /// The matrix that remains after excluding a row and excluding a column.
+    /// ## Returns
+    /// - The minor [Matrix] corresponding to `self[excluded_row_index][excluded_column_index]`.
+    /// ## Errors
+    /// - [MatrixError::InvalidMinor]
+    ///   - if `self.width` != `rhs.height`
+    ///   - if `excluded_row_index` or `excluded_column_index` are out of bounds
     pub fn minor(
         &self,
         excluded_row_index: usize,
