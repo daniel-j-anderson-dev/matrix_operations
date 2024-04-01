@@ -1,6 +1,6 @@
 use std::ops::Neg;
 
-use num::{pow::Pow, Num};
+use num::Num;
 
 use crate::{Matrix, MatrixError};
 
@@ -138,8 +138,6 @@ impl<E: Num + Neg<Output = E> + Copy> Matrix<E> {
     /// - [MatrixError::NoDeterminant]
     ///   - if `self.width` != `rhs.height`
     pub fn cofactor(&self, row_index: usize, column_index: usize) -> Result<E, MatrixError> {
-        MatrixError::cofactor(self, row_index, column_index)?;
-
         let sign = if row_index + column_index % 2 == 0 {
             -E::one()
         } else {
@@ -147,7 +145,7 @@ impl<E: Num + Neg<Output = E> + Copy> Matrix<E> {
         };
 
         return Ok(self
-            .minor(row_index,   column_index)?
+            .minor(row_index, column_index)?
             .scalar_multiply(sign)
             .determinant()?);
     }

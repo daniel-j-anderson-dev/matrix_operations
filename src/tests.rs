@@ -107,7 +107,7 @@ fn matrix_minor_err() {
         [-1.1, -2.5, 0.6, 0.0],
     ]);
 
-    let expected_error = MatrixError::InvalidMinor(MatrixMinorError::NotSquare);
+    let expected_error = MatrixError::Determinant(MinorError::NotSquare);
 
     let error = matrix.minor(0, 0).err().unwrap();
 
@@ -126,7 +126,7 @@ fn determinant() {
     let expected_determinant = -38.61164;
 
     let determinant = matrix.determinant().unwrap();
-    
+
     println!("{}\n{}", expected_determinant, determinant);
 
     assert!(determinant == expected_determinant);
