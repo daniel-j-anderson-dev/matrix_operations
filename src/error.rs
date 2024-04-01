@@ -7,7 +7,7 @@ pub enum MatrixError {
     #[error("Cannot perform {0}")]
     Arithmetic(MatrixArithmeticError),
 
-    #[error("There is no determinant because {0}")]
+    #[error("Cannot calculate determinant because {0}")]
     Determinant(MinorError),
 }
 impl MatrixError {
