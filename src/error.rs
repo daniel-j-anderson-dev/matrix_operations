@@ -4,23 +4,11 @@ use crate::Matrix;
 
 #[derive(Debug, Error, PartialEq)]
 pub enum MatrixError {
-    #[error("Cannot perform {operation:?} on matrices with dimensions ({lhs_height}x{lhs_width}) and ({rhs_height}x{rhs_width})")]
-    InvalidDimensions {
-        operation: MatrixOperation,
-        lhs_width: usize,
-        lhs_height: usize,
-        rhs_width: usize,
-        rhs_height: usize,
-    },
+    #[error("Cannot perform {0}")]
+    Arithmetic(MatrixArithmeticError),
 
-    #[error("There is no minor because {0}")]
-    InvalidMinor(MatrixMinorError),
-
-    #[error("There is no Determinant because the matrix is not square")]
-    NoDeterminant,
-
-    #[error("There is no Cofactor because the index is invalid")]
-    NoCofactor,
+    #[error("There is no determinant because {0}")]
+    Determinant(MinorError),
 }
 impl MatrixError {
     /// Check if two matrices can be multiplied <br>
@@ -35,13 +23,13 @@ impl MatrixError {
     ///   - if `lhs.width` != `rhs.height`
     pub fn multiplication<E>(lhs: &Matrix<E>, rhs: &Matrix<E>) -> Result<(), Self> {
         return if lhs.width() != rhs.height() {
-            Err(MatrixError::InvalidDimensions {
+            Err(MatrixError::Arithmetic(MatrixArithmeticError {
                 operation: MatrixOperation::Multiplication,
                 lhs_width: lhs.width(),
                 lhs_height: lhs.height(),
                 rhs_width: rhs.width(),
                 rhs_height: rhs.height(),
-            })
+            }))
         } else {
             Ok(())
         };
@@ -59,14 +47,14 @@ impl MatrixError {
     ///   - if `lhs.width` != `rhs.width`
     ///   - if `lhs.height` != `rhs.height`
     pub fn addition<E>(lhs: &Matrix<E>, rhs: &Matrix<E>) -> Result<(), Self> {
-        return if lhs.width() != rhs.width() || lhs.height() == rhs.height() {
-            Err(MatrixError::InvalidDimensions {
+        return if lhs.width() != rhs.width() || lhs.height() != rhs.height() {
+            Err(MatrixError::Arithmetic(MatrixArithmeticError {
                 operation: MatrixOperation::Addition,
                 lhs_width: lhs.width(),
                 lhs_height: lhs.height(),
                 rhs_width: rhs.width(),
                 rhs_height: rhs.height(),
-            })
+            }))
         } else {
             Ok(())
         };
@@ -91,15 +79,15 @@ impl MatrixError {
         excluded_column_index: usize,
     ) -> Result<(), Self> {
         return if excluded_row_index >= matrix.height() {
-            Err(MatrixError::InvalidMinor(MatrixMinorError::NoSuchRow(
+            Err(MatrixError::Determinant(MinorError::NoSuchRow(
                 excluded_row_index,
             )))
         } else if excluded_column_index >= matrix.width() {
-            Err(MatrixError::InvalidMinor(MatrixMinorError::NoSuchColumn(
+            Err(MatrixError::Determinant(MinorError::NoSuchColumn(
                 excluded_column_index,
             )))
         } else if matrix.width() != matrix.height() {
-            Err(MatrixError::InvalidMinor(MatrixMinorError::NotSquare))
+            Err(MatrixError::Determinant(MinorError::NotSquare))
         } else {
             Ok(())
         };
@@ -116,7 +104,7 @@ impl MatrixError {
     ///   - if `matrix.width` != `matrix.height`
     pub fn determinant<E>(matrix: &Matrix<E>) -> Result<(), Self> {
         return if matrix.width() != matrix.height() {
-            Err(MatrixError::NoDeterminant)
+            Err(MatrixError::Determinant(MinorError::NotSquare))
         } else {
             Ok(())
         };
@@ -133,15 +121,34 @@ impl MatrixError {
     /// ## Errors
     /// - [MatrixError::NoCofactor]
     ///   - if `matrix.width` != `matrix.height`
-    pub fn cofactor<E>(matrix: &Matrix<E>, row_index: usize, column_index: usize) -> Result<(), Self> {
+    pub fn cofactor<E>(
+        matrix: &Matrix<E>,
+        row_index: usize,
+        column_index: usize,
+    ) -> Result<(), Self> {
         return if matrix.width() != matrix.height() {
-            Err(MatrixError::NoDeterminant)
+            Err(MatrixError::Determinant(MinorError::NotSquare))
+        } else if row_index >= matrix.height() {
+            Err(MatrixError::Determinant(MinorError::NoSuchRow(row_index)))
+        } else if column_index >= matrix.width() {
+            Err(MatrixError::Determinant(MinorError::NoSuchColumn(
+                column_index,
+            )))
         } else {
             Ok(())
         };
     }
 }
 
+#[derive(Debug, PartialEq, Error)]
+#[error("{operation:?} on matrices with dimensions ({lhs_height}x{lhs_width}) and ({rhs_height}x{rhs_width})")]
+pub struct MatrixArithmeticError {
+    operation: MatrixOperation,
+    lhs_width: usize,
+    lhs_height: usize,
+    rhs_width: usize,
+    rhs_height: usize,
+}
 #[derive(Debug, PartialEq)]
 pub enum MatrixOperation {
     Addition,
@@ -149,11 +156,13 @@ pub enum MatrixOperation {
 }
 
 #[derive(Debug, Error, PartialEq)]
-pub enum MatrixMinorError {
-    #[error("the matrix is not square")]
-    NotSquare,
+pub enum MinorError {
     #[error("the row index {0} is out of bounds")]
     NoSuchRow(usize),
+
     #[error("the column index {0} is out of bounds")]
     NoSuchColumn(usize),
+
+    #[error("the matrix is not square")]
+    NotSquare,
 }
