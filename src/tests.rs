@@ -113,3 +113,21 @@ fn matrix_minor_err() {
 
     assert!(error == expected_error);
 }
+
+#[test]
+fn determinant() {
+    let matrix = Matrix::from([
+        [0.5, 1.2, 1.22, -2.1],
+        [-1.1, -2.5, 0.6, 0.0],
+        [0.0, 1.1, -2.2, -0.1],
+        [-3.0, 1.2, -0.5, 1.0],
+    ]);
+
+    let expected_determinant = -38.61164;
+
+    let determinant = matrix.determinant().unwrap();
+    
+    println!("{}\n{}", expected_determinant, determinant);
+
+    assert!(determinant == expected_determinant);
+}
