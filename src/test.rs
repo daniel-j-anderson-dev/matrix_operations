@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 use super::*;
 
 #[test]
@@ -81,7 +79,7 @@ fn matrix_add() {
 }
 
 #[test]
-fn matrix_minor_ok() {
+fn minor_ok() {
     let matrix = Matrix::from([
         [0.5, 1.2, 1.22, -2.1],
         [-1.1, -2.5, 0.6, 0.0],
@@ -101,17 +99,12 @@ fn matrix_minor_ok() {
 }
 
 #[test]
-fn matrix_minor_err() {
-    let matrix = Matrix::from([
-        [0.5, 1.2, 1.22, -2.1], //
-        [-1.1, -2.5, 0.6, 0.0],
-    ]);
+fn minor_err() {
+    let matrix = Matrix::from([[1, 2, 3, 4, 5, 6], [1, 2, 3, 4, 5, 6]]);
 
-    let expected_error = MatrixError::Determinant(MinorError::NotSquare);
-
-    let error = matrix.minor(0, 0).err().unwrap();
-
-    assert!(error == expected_error);
+    MatrixError::minor(&matrix, 0, 0).err().unwrap();
+    MatrixError::minor(&matrix, 2, 0).err().unwrap();
+    MatrixError::minor(&matrix, 0, 6).err().unwrap();
 }
 
 #[test]
