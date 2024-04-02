@@ -3,15 +3,13 @@ use num::Num;
 #[derive(Clone, PartialEq)]
 pub struct Matrix<ELEMENT> {
     elements: Box<[Box<[ELEMENT]>]>,
-    height: usize,
-    width: usize,
 }
 impl<E> Matrix<E> {
     pub fn width(&self) -> usize {
-        return self.width;
+        return self.elements[0].len();
     }
     pub fn height(&self) -> usize {
-        return self.height;
+        return self.elements.len();
     }
     pub fn rows(&self) -> impl Iterator<Item = &[E]> {
         return self.elements.iter().map(Box::as_ref);
@@ -24,8 +22,6 @@ impl<E: Num + Copy> Matrix<E> {
     pub fn zeros(width: usize, height: usize) -> Self {
         return Matrix {
             elements: vec![vec![E::zero(); width].into_boxed_slice(); height].into_boxed_slice(),
-            height,
-            width,
         };
     }
     pub fn identity(width: usize, height: usize) -> Self {
