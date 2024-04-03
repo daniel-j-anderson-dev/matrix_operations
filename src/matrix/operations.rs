@@ -18,8 +18,8 @@ impl<E: Num + Copy> Matrix<E> {
         MatrixError::multiplication(self, rhs)?;
 
         let mut product = Matrix::zeros(
-            NonZeroUsize::new(self.height()).expect("height cannot be zero"),
-            NonZeroUsize::new(rhs.width()).expect("width cannot be zero"),
+            self.height_nonzero(),
+            rhs.width_nonzero()
         );
 
         for lhs_row_index in 0..self.height() {
@@ -50,8 +50,8 @@ impl<E: Num + Copy> Matrix<E> {
     /// - The scalar product [Matrix].
     pub fn scalar_multiply(&self, scalar: E) -> Self {
         let mut product = Matrix::zeros(
-            NonZeroUsize::new(self.height()).expect("height cannot be zero"),
-            NonZeroUsize::new(self.width()).expect("width cannot be zero"),
+            self.height_nonzero(),
+            self.width_nonzero(),
         );
 
         for row_index in 0..self.height() {
@@ -76,8 +76,8 @@ impl<E: Num + Copy> Matrix<E> {
         MatrixError::addition(self, rhs)?;
 
         let mut sum = Matrix::zeros(
-            NonZeroUsize::new(self.height()).expect("height cannot be zero"),
-            NonZeroUsize::new(self.width()).expect("width cannot be zero"),
+            self.height_nonzero(),
+            self.width_nonzero(),
         );
 
         for row_index in 0..self.height() {
@@ -157,9 +157,9 @@ impl<E: Num + Neg<Output = E> + Copy + Debug> Matrix<E> {
 
         let minor = self.minor(row_index, column_index)?;
 
-        let cofactor = minor.scalar_multiply(sign).determinant()?;
+        let minor_determinant = minor.determinant()?;
 
-        return Ok(cofactor);
+        return Ok(sign * minor_determinant);
     }
 
     /// Constructs the determinant <br>
@@ -173,6 +173,8 @@ impl<E: Num + Neg<Output = E> + Copy + Debug> Matrix<E> {
     /// - [MatrixError::Determinant]
     ///   - if `self.width()` != `rhs.height`
     ///   - if `self.width()` OR `self.height` are `0`
+    ///     - eventual i want [Matrix] to have const generic sizes with const where clauses.
+    ///       This make this method only available to a [Matrix] with valid dimensions so no error is needed
     pub fn determinant(&self) -> Result<E, MatrixError> {
         MatrixError::determinant(self)?;
 

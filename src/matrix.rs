@@ -10,8 +10,16 @@ impl<E> Matrix<E> {
     pub fn width(&self) -> usize {
         return self.elements[0].len();
     }
+    /// convenience method when a [NonZeroUsize] is needed
+    pub fn width_nonzero(&self) -> NonZeroUsize {
+        return NonZeroUsize::new(self.elements[0].len()).expect("width cannot be zero");
+    }
     pub fn height(&self) -> usize {
         return self.elements.len();
+    }
+    /// convenience method when a [NonZeroUsize] is needed
+    pub fn height_nonzero(&self) -> NonZeroUsize {
+        return NonZeroUsize::new(self.elements.len()).expect("height cannot be zero");
     }
     pub fn rows(&self) -> impl Iterator<Item = &[E]> {
         return self.elements.iter().map(Box::as_ref);
