@@ -3,7 +3,7 @@ use std::{
     ops::{Index, IndexMut},
 };
 
-use crate::Matrix;
+use crate::{Matrix, MatrixError};
 
 impl<E> Index<usize> for Matrix<E> {
     type Output = [E];
@@ -18,16 +18,39 @@ impl<E> IndexMut<usize> for Matrix<E> {
     }
 }
 
-impl<E, const W: usize, const H: usize> From<[[E; W]; H]> for Matrix<E> {
-    fn from(value: [[E; W]; H]) -> Self {
-        return Matrix {
-            elements: value
+impl<Element, const WIDTH: usize, const HEIGHT: usize> TryFrom<[[Element; WIDTH]; HEIGHT]>
+    for Matrix<Element>
+{
+    type Error = MatrixError;
+
+    /// When using array literals [Option::unwrap] or [Option::expect] are perfectly fine<br>
+    /// so long as neither array dimension is zero
+    /// ## Example
+    /// ```rust
+    /// use crate::matrix::Matrix;
+    /// 
+    /// let m = Matrix::try_from([
+    ///     [00, 01],
+    ///     [10, 11],
+    /// ]).expect("Matrix dimensions are non zero");
+    ///
+    /// fn unknown_array_dimensions<E, const H: usize, const W: usize>(array: [[E; W]; H]) {
+    ///     let m = match Matrix::try_from(array) {
+    ///         Ok(m) => m,
+    ///         Err(e) => panic!("{e}"),
+    ///     };
+    /// }
+    /// ```
+    fn try_from(elements: [[Element; WIDTH]; HEIGHT]) -> Result<Self, Self::Error> {
+        if WIDTH == 0 || HEIGHT == 0 {
+            return Err(MatrixError::InvalidDimensions);
+        }
+        return Ok(Matrix {
+            elements: elements
                 .into_iter()
                 .map(|row| row.into_iter().collect())
                 .collect(),
-            width: W,
-            height: H,
-        };
+        });
     }
 }
 
