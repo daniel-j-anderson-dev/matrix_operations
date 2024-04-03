@@ -1,3 +1,5 @@
+use std::num::NonZeroUsize;
+
 use num::Num;
 
 #[derive(Clone, PartialEq)]
@@ -19,16 +21,17 @@ impl<E> Matrix<E> {
     }
 }
 impl<E: Num + Copy> Matrix<E> {
-    pub fn zeros(width: usize, height: usize) -> Self {
+    pub fn zeros(height: NonZeroUsize, width: NonZeroUsize) -> Self {
         return Matrix {
-            elements: vec![vec![E::zero(); width].into_boxed_slice(); height].into_boxed_slice(),
+            elements: vec![vec![E::zero(); width.get()].into_boxed_slice(); height.get()]
+                .into_boxed_slice(),
         };
     }
-    pub fn identity(width: usize, height: usize) -> Self {
+    pub fn identity(height: NonZeroUsize, width: NonZeroUsize) -> Self {
         let mut identity = Self::zeros(width, height);
 
-        for row_index in 0..height {
-            for column_index in 0..width {
+        for row_index in 0..height.get() {
+            for column_index in 0..width.get() {
                 if row_index == column_index {
                     identity[row_index][column_index] = E::one();
                 }
