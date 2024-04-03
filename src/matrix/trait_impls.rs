@@ -28,7 +28,7 @@ impl<Element, const WIDTH: usize, const HEIGHT: usize> TryFrom<[[Element; WIDTH]
     /// ## Example
     /// ```rust
     /// use crate::matrix::Matrix;
-    /// 
+    ///
     /// let m = Matrix::try_from([
     ///     [00, 01],
     ///     [10, 11],
