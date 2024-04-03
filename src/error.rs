@@ -13,6 +13,39 @@ pub enum MatrixError {
     #[error("Cannot create a matrix with 0 rows or columns")]
     InvalidDimensions,
 }
+
+#[derive(Debug, Error)]
+#[error("Cannot perform {operation} on matrices with dimensions ({lhs_height}x{lhs_width}) and ({rhs_height}x{rhs_width})")]
+pub struct MatrixArithmeticError {
+    operation: MatrixOperation,
+    lhs_width: usize,
+    lhs_height: usize,
+    rhs_width: usize,
+    rhs_height: usize,
+}
+#[derive(Debug, Error)]
+pub enum MatrixOperation {
+    #[error("Matrix Addition")]
+    Addition,
+    #[error("Matrix Multiplication")]
+    Multiplication,
+}
+
+#[derive(Debug, Error)]
+pub enum MatrixMinorError {
+    #[error("the row index {0} is out of bounds")]
+    NoSuchRow(usize),
+
+    #[error("the column index {0} is out of bounds")]
+    NoSuchColumn(usize),
+
+    #[error("the matrix is not square")]
+    NotSquare,
+
+    #[error("the matrix is too small or empty")]
+    TooSmall,
+}
+
 impl MatrixError {
     /// Check if two matrices can be multiplied <br>
     /// ## Parameters
@@ -68,8 +101,8 @@ impl MatrixError {
     /// Use this to check if a matrix, and index pair form a valid minor <br>
     /// ## Parameters
     /// - `matrix`: Matrix to take a minor from.
-    /// - `excluded_row_index`: the index of row to leave out form this minor.
-    /// - `excluded_column_index`: the index of column to leave out form this minor.
+    /// - `excluded_row_index`: the index of the row to leave out form this minor.
+    /// - `excluded_column_index`: the index of the column to leave out form this minor.
     /// ## Returns
     /// - <b>UnitType `()`</b>
     ///   - if there exists a minor of `matrix` at the corresponding indexes
@@ -114,34 +147,4 @@ impl MatrixError {
             Ok(())
         };
     }
-}
-
-#[derive(Debug, Error)]
-#[error("Cannot perform {operation:?} on matrices with dimensions ({lhs_height}x{lhs_width}) and ({rhs_height}x{rhs_width})")]
-pub struct MatrixArithmeticError {
-    operation: MatrixOperation,
-    lhs_width: usize,
-    lhs_height: usize,
-    rhs_width: usize,
-    rhs_height: usize,
-}
-#[derive(Debug)]
-pub enum MatrixOperation {
-    Addition,
-    Multiplication,
-}
-
-#[derive(Debug, Error)]
-pub enum MatrixMinorError {
-    #[error("the row index {0} is out of bounds")]
-    NoSuchRow(usize),
-
-    #[error("the column index {0} is out of bounds")]
-    NoSuchColumn(usize),
-
-    #[error("the matrix is not square")]
-    NotSquare,
-
-    #[error("the matrix is too small or empty")]
-    TooSmall,
 }
