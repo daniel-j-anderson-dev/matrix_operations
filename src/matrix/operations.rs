@@ -17,10 +17,7 @@ impl<E: Num + Copy> Matrix<E> {
     pub fn matrix_multiply(&self, rhs: &Self) -> Result<Self, MatrixError> {
         MatrixError::multiplication(self, rhs)?;
 
-        let mut product = Matrix::zeros(
-            self.height_nonzero(),
-            rhs.width_nonzero()
-        );
+        let mut product = Matrix::zeros(self.height_nonzero(), rhs.width_nonzero());
 
         for lhs_row_index in 0..self.height() {
             for rhs_col_index in 0..rhs.width() {
@@ -49,10 +46,7 @@ impl<E: Num + Copy> Matrix<E> {
     /// ## Returns
     /// - The scalar product [Matrix].
     pub fn scalar_multiply(&self, scalar: E) -> Self {
-        let mut product = Matrix::zeros(
-            self.height_nonzero(),
-            self.width_nonzero(),
-        );
+        let mut product = Matrix::zeros(self.height_nonzero(), self.width_nonzero());
 
         for row_index in 0..self.height() {
             for column_index in 0..self.width() {
@@ -75,10 +69,7 @@ impl<E: Num + Copy> Matrix<E> {
     pub fn add(&self, rhs: &Self) -> Result<Self, MatrixError> {
         MatrixError::addition(self, rhs)?;
 
-        let mut sum = Matrix::zeros(
-            self.height_nonzero(),
-            self.width_nonzero(),
-        );
+        let mut sum = Matrix::zeros(self.height_nonzero(), self.width_nonzero());
 
         for row_index in 0..self.height() {
             for column_index in 0..self.width() {
