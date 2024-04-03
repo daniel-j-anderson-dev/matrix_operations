@@ -24,8 +24,14 @@ impl<E> Matrix<E> {
     pub fn rows(&self) -> impl Iterator<Item = &[E]> {
         return self.elements.iter().map(Box::as_ref);
     }
+    pub fn rows_mut(&mut self) -> impl Iterator<Item = &mut [E]> {
+        return self.elements.iter_mut().map(Box::as_mut);
+    }
     pub fn elements(&self) -> impl Iterator<Item = &E> {
         return self.elements.iter().flat_map(|row| row.iter());
+    }
+    pub fn elements_mut(&mut self) -> impl Iterator<Item = &mut E> {
+        return self.elements.iter_mut().flat_map(|row| row.iter_mut());
     }
 }
 impl<E: Num + Copy> Matrix<E> {
@@ -47,6 +53,9 @@ impl<E: Num + Copy> Matrix<E> {
         }
 
         return identity;
+    }
+    pub fn set_zero(&mut self) {
+        self.elements_mut().for_each(|element| *element = E::zero());
     }
 }
 
