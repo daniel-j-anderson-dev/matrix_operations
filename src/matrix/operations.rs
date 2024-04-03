@@ -178,25 +178,22 @@ impl<E: Num + Neg<Output = E> + Copy + Debug> Matrix<E> {
     pub fn determinant(&self) -> Result<E, MatrixError> {
         MatrixError::determinant(self)?;
 
-        if self.width() == 2 || self.height() == 2 {
+        if self.width() == 2 && self.height() == 2 {
             let determinant = self[0][0] * self[1][1] - self[0][1] * self[1][0];
             return Ok(determinant);
         }
 
-        if self.width() == 1 || self.height() == 1 {
+        if self.width() == 1 && self.height() == 1 {
             return Ok(self[0][0]);
         }
 
         let mut sum = E::zero();
 
-        for row_index in 0..self.height() {
-            for column_index in 0..self.width() {
-                let element = self[row_index][column_index];
-                let cofactor = self.cofactor(row_index, column_index)?;
-                sum = sum + (cofactor * element);
-
-                // dbg!(&row_index, &column_index, &element, &cofactor, &sum);
-            }
+        const FIRST_ROW_INDEX: usize = 0;
+        for column_index in 0..self.width() {
+            let element = self[FIRST_ROW_INDEX][column_index];
+            let cofactor = self.cofactor(FIRST_ROW_INDEX, column_index)?;
+            sum = sum + (cofactor * element);
         }
 
         return Ok(sum);
