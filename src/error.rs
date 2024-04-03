@@ -2,13 +2,16 @@ use thiserror::Error;
 
 use crate::Matrix;
 
-#[derive(Debug, Error, PartialEq)]
+#[derive(Debug, Error)]
 pub enum MatrixError {
     #[error("{0}")]
     Arithmetic(#[from] MatrixArithmeticError),
 
     #[error("Cannot calculate determinant because {0}")]
     Determinant(#[from] MatrixMinorError),
+
+    #[error("Cannot create a matrix with 0 rows or columns")]
+    InvalidDimensions,
 }
 impl MatrixError {
     /// Check if two matrices can be multiplied <br>
@@ -84,8 +87,8 @@ impl MatrixError {
             Err(MatrixMinorError::NoSuchRow(excluded_row_index).into())
         } else if excluded_column_index >= matrix.width() {
             Err(MatrixMinorError::NoSuchColumn(excluded_column_index).into())
-        } else if matrix.width() == 0 || matrix.height() == 0 {
-            Err(MatrixMinorError::Empty.into())
+        } else if matrix.width() < 2 || matrix.height() < 2 {
+            Err(MatrixMinorError::TooSmall.into())
         } else if matrix.width() != matrix.height() {
             Err(MatrixMinorError::NotSquare.into())
         } else {
@@ -104,7 +107,7 @@ impl MatrixError {
     ///   - if `matrix.width` != `matrix.height`
     pub fn determinant<E>(matrix: &Matrix<E>) -> Result<(), Self> {
         return if matrix.width() == 0 || matrix.height() == 0 {
-            Err(MatrixMinorError::Empty.into())
+            Err(MatrixMinorError::TooSmall.into())
         } else if matrix.width() != matrix.height() {
             Err(MatrixMinorError::NotSquare.into())
         } else {
@@ -113,7 +116,7 @@ impl MatrixError {
     }
 }
 
-#[derive(Debug, PartialEq, Error)]
+#[derive(Debug, Error)]
 #[error("Cannot perform {operation:?} on matrices with dimensions ({lhs_height}x{lhs_width}) and ({rhs_height}x{rhs_width})")]
 pub struct MatrixArithmeticError {
     operation: MatrixOperation,
@@ -122,13 +125,13 @@ pub struct MatrixArithmeticError {
     rhs_width: usize,
     rhs_height: usize,
 }
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub enum MatrixOperation {
     Addition,
     Multiplication,
 }
 
-#[derive(Debug, Error, PartialEq)]
+#[derive(Debug, Error)]
 pub enum MatrixMinorError {
     #[error("the row index {0} is out of bounds")]
     NoSuchRow(usize),
@@ -139,6 +142,6 @@ pub enum MatrixMinorError {
     #[error("the matrix is not square")]
     NotSquare,
 
-    #[error("the matrix has no elements")]
-    Empty,
+    #[error("the matrix is too small or empty")]
+    TooSmall,
 }
