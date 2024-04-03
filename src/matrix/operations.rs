@@ -6,7 +6,7 @@ use crate::{Matrix, MatrixError};
 
 impl<E: Num + Copy> Matrix<E> {
     /// Calculate the matrix product of `self` and `rhs`. <br>
-    /// element wise dot product of `self`'s rows and `rhs`'s columns.
+    /// The sum of dot products of `self` rows and `rhs` columns.
     /// ## Parameters
     /// - `rhs`: right hand side of product matrix.
     /// ## Returns
