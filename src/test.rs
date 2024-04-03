@@ -120,9 +120,10 @@ fn minor_err() {
 #[test]
 fn determinant_2x2() {
     let matrix = Matrix::try_from([
-        [3, 5],
+        [3, 5], //
         [3, 6],
-    ]).unwrap();
+    ])
+    .unwrap();
 
     let expected_determinant = 3;
 
@@ -134,8 +135,9 @@ fn determinant_2x2() {
 #[test]
 fn determinant_1x1() {
     let matrix = Matrix::try_from([
-        [3],
-    ]).unwrap();
+        [3], //
+    ])
+    .unwrap();
 
     let expected_determinant = 3;
 
@@ -147,12 +149,11 @@ fn determinant_1x1() {
 #[test]
 fn determinant() {
     let matrix = Matrix::try_from([
-        [1, 2, 3],
+        [1, 2, 3], //
         [4, 5, 6],
         [7, 8, 9],
     ])
     .unwrap();
-
     let matrix2 = Matrix::try_from([
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
