@@ -1,5 +1,5 @@
 use std::{
-    fmt::Display,
+    fmt::{Debug, Display},
     ops::{Index, IndexMut},
 };
 
@@ -35,9 +35,10 @@ impl<Element, const WIDTH: usize, const HEIGHT: usize> TryFrom<[[Element; WIDTH]
     /// ]).expect("Matrix dimensions are non zero");
     ///
     /// fn unknown_array_dimensions<E, const H: usize, const W: usize>(array: [[E; W]; H]) {
+    ///     // W and H might be 0!!!!
     ///     let m = match Matrix::try_from(array) {
     ///         Ok(m) => m,
-    ///         Err(e) => panic!("{e}"),
+    ///         Err(e) => panic!("width or must must not be 0!\n{e}"),
     ///     };
     /// }
     /// ```
@@ -59,6 +60,18 @@ impl<E: Display> Display for Matrix<E> {
         for row in self.elements.iter() {
             for element in row.iter() {
                 write!(f, "{}, ", element)?;
+            }
+            writeln!(f)?;
+        }
+        return Ok(());
+    }
+}
+
+impl<E: Debug> Debug for Matrix<E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for row in self.elements.iter() {
+            for element in row.iter() {
+                write!(f, "{:?}, ", element)?;
             }
             writeln!(f)?;
         }
