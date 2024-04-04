@@ -3,7 +3,7 @@ use std::{
     ops::{Index, IndexMut},
 };
 
-use crate::{Matrix, MatrixError};
+use crate::{DimensionError, Matrix, MatrixError};
 
 use super::MatrixIndex;
 
@@ -61,7 +61,7 @@ impl<Element, const WIDTH: usize, const HEIGHT: usize> TryFrom<[[Element; WIDTH]
     /// ```
     fn try_from(elements: [[Element; WIDTH]; HEIGHT]) -> Result<Self, Self::Error> {
         if WIDTH == 0 || HEIGHT == 0 {
-            return Err(MatrixError::InvalidDimensions);
+            return Err(DimensionError::Zero.into());
         }
         return Ok(Matrix {
             elements: elements
