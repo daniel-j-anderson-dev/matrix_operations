@@ -5,16 +5,33 @@ use std::{
 
 use crate::{Matrix, MatrixError};
 
+use super::MatrixIndex;
+
 impl<E> Index<usize> for Matrix<E> {
     type Output = [E];
     fn index(&self, index: usize) -> &Self::Output {
         return self.elements.index(index);
     }
 }
+impl<E, I: Into<MatrixIndex>> Index<I> for Matrix<E> {
+    type Output = E;
+    fn index(&self, index: I) -> &Self::Output {
+        let index = index.into();
+        return self.elements.index(index.row()).index(index.column());
+    }
+}
 
 impl<E> IndexMut<usize> for Matrix<E> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         return self.elements.index_mut(index);
+    }
+}
+impl<E> IndexMut<MatrixIndex> for Matrix<E> {
+    fn index_mut(&mut self, index: MatrixIndex) -> &mut Self::Output {
+        return self
+            .elements
+            .index_mut(index.row())
+            .index_mut(index.column());
     }
 }
 
@@ -69,6 +86,7 @@ impl<E: Display> Display for Matrix<E> {
 
 impl<E: Debug> Debug for Matrix<E> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f)?;
         for row in self.elements.iter() {
             for element in row.iter() {
                 write!(f, "{:?}, ", element)?;
