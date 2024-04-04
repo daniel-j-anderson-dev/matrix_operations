@@ -29,6 +29,8 @@ pub enum MatrixOperation {
     Addition,
     #[error("Matrix Multiplication")]
     Multiplication,
+    #[error("Hadamard product (Element-wise multiplication)")]
+    HadamardProduct,
 }
 
 #[derive(Debug, Error)]
@@ -42,7 +44,7 @@ pub enum MatrixMinorError {
     #[error("the matrix is not square")]
     NotSquare,
 
-    #[error("the matrix is too small or empty")]
+    #[error("the matrix is too small")]
     TooSmall,
 }
 
@@ -61,6 +63,31 @@ impl MatrixError {
         return if lhs.width() != rhs.height() {
             Err(MatrixArithmeticError {
                 operation: MatrixOperation::Multiplication,
+                lhs_width: lhs.width(),
+                lhs_height: lhs.height(),
+                rhs_width: rhs.width(),
+                rhs_height: rhs.height(),
+            }
+            .into())
+        } else {
+            Ok(())
+        };
+    }
+
+    /// Check if two matrices can be element-wise multiplied <br>
+    /// ## Parameters
+    /// - `lhs`: light hand side of an element-wise matrix product.
+    /// - `rhs`: right hand side of an element-wise matrix product.
+    /// ## Returns
+    /// - <b>UnitType `()`</b>
+    ///   - if `lhs` and `rhs` can be element-wise multiplied
+    /// ## Errors
+    /// - [MatrixError::Arithmetic]
+    ///   - if `lhs` and `rhs` have different dimensions
+    pub fn hadamard_product<E>(lhs: &Matrix<E>, rhs: &Matrix<E>) -> Result<(), Self> {
+        return if lhs.width() != rhs.width() || lhs.height() != rhs.height() {
+            Err(MatrixArithmeticError {
+                operation: MatrixOperation::HadamardProduct,
                 lhs_width: lhs.width(),
                 lhs_height: lhs.height(),
                 rhs_width: rhs.width(),

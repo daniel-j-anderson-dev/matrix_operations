@@ -40,6 +40,18 @@ impl<E: Num + Copy> Matrix<E> {
         return Ok(product);
     }
 
+    pub fn hadamard_product(&self, rhs: &Self) -> Result<Self, MatrixError> {
+        MatrixError::hadamard_product(self, rhs)?;
+
+        let mut product = Matrix::zeros(self.height_nonzero(), self.width_nonzero());
+
+        for (index, product_element) in product.elements_mut_enumerated() {
+            *product_element = self[index] * rhs[index];
+        }
+
+        return Ok(product);
+    }
+
     /// Calculate the scalar product of `self` and `scalar`. <br>
     /// each element of `self` is multiplied by `scalar`.
     /// ## Parameters
