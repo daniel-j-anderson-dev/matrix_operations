@@ -194,4 +194,8 @@ impl<E: Num + Neg<Output = E> + Copy + Debug> Matrix<E> {
 
         return Ok(sum);
     }
+
+    pub fn inverse(&self) -> Result<Self, MatrixError> {
+        unimplemented!();
+    }
 }
