@@ -122,11 +122,23 @@ impl MatrixIndex {
     pub fn column(&self) -> usize {
         return self.column;
     }
+
+    /// Add one to the row index
     pub fn increment_row(&mut self) {
         self.row += 1;
     }
+
+    /// Add one to the column index
     pub fn increment_column(&mut self) {
         self.row += 1;
+    }
+
+    pub fn set_row(&mut self, row_index: usize) {
+        self.row = row_index;
+    }
+
+    pub fn set_column(&mut self, column_index: usize) {
+        self.column = column_index;
     }
 }
 impl From<(usize, usize)> for MatrixIndex {
