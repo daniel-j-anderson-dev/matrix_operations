@@ -4,25 +4,22 @@ use crate::Matrix;
 
 #[derive(Debug, Error)]
 pub enum MatrixError {
-    #[error("{0}")]
-    Arithmetic(#[from] MatrixArithmeticError),
+    #[error("Cannot perform {operation} on matrices because {dimension_error}")]
+    Arithmetic {
+        operation: MatrixOperation,
+        dimension_error: DimensionError,
+    },
 
     #[error("Cannot calculate determinant because {0}")]
-    Determinant(#[from] MatrixMinorError),
+    Minor(#[from] MinorError),
 
-    #[error("Cannot create a matrix with 0 rows or columns")]
-    InvalidDimensions,
+    #[error("Cannot calculate determinant because {0}")]
+    Determinant(#[from] DeterminantError),
+
+    #[error("Cannot Calculate Inverse because {0}")]
+    Inverse(#[from] InverseError),
 }
 
-#[derive(Debug, Error)]
-#[error("Cannot perform {operation} on matrices with dimensions ({lhs_height}x{lhs_width}) and ({rhs_height}x{rhs_width})")]
-pub struct MatrixArithmeticError {
-    operation: MatrixOperation,
-    lhs_width: usize,
-    lhs_height: usize,
-    rhs_width: usize,
-    rhs_height: usize,
-}
 #[derive(Debug, Error)]
 pub enum MatrixOperation {
     #[error("Matrix Addition")]
@@ -34,18 +31,62 @@ pub enum MatrixOperation {
 }
 
 #[derive(Debug, Error)]
-pub enum MatrixMinorError {
-    #[error("the row index {0} is out of bounds")]
-    NoSuchRow(usize),
+pub enum DimensionError {
+    #[error("the matrices are not the same size (lhs: {lhs_height}x{lhs_width}, rhs: {rhs_height}x{rhs_width})")]
+    DifferentDimensions {
+        lhs_width: usize,
+        lhs_height: usize,
+        rhs_width: usize,
+        rhs_height: usize,
+    },
 
-    #[error("the column index {0} is out of bounds")]
-    NoSuchColumn(usize),
+    #[error("the width of lhs matrix does not equal the height of rhs matrix (lhs width: {lhs_width}, rhs height: {rhs_height})")]
+    LhsWidthNotEqualToRhsHeight { 
+        lhs_width: usize,
+        rhs_height: usize
+    },
 
     #[error("the matrix is not square")]
     NotSquare,
 
     #[error("the matrix is too small")]
     TooSmall,
+
+    #[error("the matrix has 0 size")]
+    Zero,
+}
+
+#[derive(Debug, Error)]
+pub enum MinorError {
+    #[error("The Minor does not exist at row index {0} is out of bounds")]
+    NoSuchRow(usize),
+
+    #[error("The Minor does not exist at column index {0} is out of bounds")]
+    NoSuchColumn(usize),
+
+    #[error("The Minor does not exist because {0}")]
+    InvalidDimensions(#[from] DimensionError),
+}
+
+#[derive(Debug, Error)]
+pub enum DeterminantError {
+    #[error("{0}")]
+    MinorError(#[from] MinorError),
+
+    #[error("The Determinant does not exist because {0}")]
+    DimensionError(#[from] DimensionError),
+}
+
+#[derive(Debug, Error)]
+pub enum InverseError {
+    #[error("{0}")]
+    DeterminantError(#[from] DeterminantError),
+
+    #[error("The determinant is 0")]
+    DeterminantZero,
+
+    #[error("{0}")]
+    DimensionError(#[from] DimensionError),
 }
 
 impl MatrixError {
@@ -61,14 +102,13 @@ impl MatrixError {
     ///   - if `lhs.width` != `rhs.height`
     pub fn multiplication<E>(lhs: &Matrix<E>, rhs: &Matrix<E>) -> Result<(), Self> {
         return if lhs.width() != rhs.height() {
-            Err(MatrixArithmeticError {
+            Err(MatrixError::Arithmetic {
                 operation: MatrixOperation::Multiplication,
-                lhs_width: lhs.width(),
-                lhs_height: lhs.height(),
-                rhs_width: rhs.width(),
-                rhs_height: rhs.height(),
-            }
-            .into())
+                dimension_error: DimensionError::LhsWidthNotEqualToRhsHeight {
+                    lhs_width: lhs.width(),
+                    rhs_height: rhs.height(),
+                },
+            })
         } else {
             Ok(())
         };
@@ -86,14 +126,15 @@ impl MatrixError {
     ///   - if `lhs` and `rhs` have different dimensions
     pub fn hadamard_product<E>(lhs: &Matrix<E>, rhs: &Matrix<E>) -> Result<(), Self> {
         return if lhs.width() != rhs.width() || lhs.height() != rhs.height() {
-            Err(MatrixArithmeticError {
+            Err(MatrixError::Arithmetic {
                 operation: MatrixOperation::HadamardProduct,
-                lhs_width: lhs.width(),
-                lhs_height: lhs.height(),
-                rhs_width: rhs.width(),
-                rhs_height: rhs.height(),
-            }
-            .into())
+                dimension_error: DimensionError::DifferentDimensions {
+                    lhs_width: lhs.width(),
+                    lhs_height: lhs.height(),
+                    rhs_width: rhs.width(),
+                    rhs_height: rhs.height(),
+                },
+            })
         } else {
             Ok(())
         };
@@ -112,14 +153,15 @@ impl MatrixError {
     ///   - if `lhs.height` != `rhs.height`
     pub fn addition<E>(lhs: &Matrix<E>, rhs: &Matrix<E>) -> Result<(), Self> {
         return if lhs.width() != rhs.width() || lhs.height() != rhs.height() {
-            Err(MatrixArithmeticError {
+            Err(MatrixError::Arithmetic {
                 operation: MatrixOperation::Addition,
-                lhs_width: lhs.width(),
-                lhs_height: lhs.height(),
-                rhs_width: rhs.width(),
-                rhs_height: rhs.height(),
-            }
-            .into())
+                dimension_error: DimensionError::DifferentDimensions {
+                    lhs_width: lhs.width(),
+                    lhs_height: lhs.height(),
+                    rhs_width: rhs.width(),
+                    rhs_height: rhs.height(),
+                },
+            })
         } else {
             Ok(())
         };
@@ -144,13 +186,18 @@ impl MatrixError {
         excluded_column_index: usize,
     ) -> Result<(), Self> {
         return if excluded_row_index >= matrix.height() {
-            Err(MatrixMinorError::NoSuchRow(excluded_row_index).into())
+            Err(DeterminantError::MinorError(MinorError::NoSuchRow(excluded_row_index)).into())
         } else if excluded_column_index >= matrix.width() {
-            Err(MatrixMinorError::NoSuchColumn(excluded_column_index).into())
+            Err(
+                DeterminantError::MinorError(MinorError::NoSuchColumn(excluded_column_index))
+                    .into(),
+            )
+        } else if matrix.width() == 0 || matrix.height() == 0 {
+            Err(DeterminantError::DimensionError(DimensionError::Zero).into())
         } else if matrix.width() < 2 || matrix.height() < 2 {
-            Err(MatrixMinorError::TooSmall.into())
+            Err(DeterminantError::DimensionError(DimensionError::TooSmall).into())
         } else if matrix.width() != matrix.height() {
-            Err(MatrixMinorError::NotSquare.into())
+            Err(DeterminantError::DimensionError(DimensionError::NotSquare).into())
         } else {
             Ok(())
         };
@@ -167,9 +214,13 @@ impl MatrixError {
     ///   - if `matrix.width` != `matrix.height`
     pub fn determinant<E>(matrix: &Matrix<E>) -> Result<(), Self> {
         return if matrix.width() == 0 || matrix.height() == 0 {
-            Err(MatrixMinorError::TooSmall.into())
+            Err(MatrixError::Determinant(
+                DeterminantError::DimensionError(DimensionError::Zero),
+            ))
         } else if matrix.width() != matrix.height() {
-            Err(MatrixMinorError::NotSquare.into())
+            Err(MatrixError::Determinant(
+                DeterminantError::DimensionError(DimensionError::NotSquare),
+            ))
         } else {
             Ok(())
         };
