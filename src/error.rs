@@ -6,7 +6,7 @@ use crate::Matrix;
 pub enum MatrixError {
     #[error("Cannot perform {operation} on matrices because {dimension_error}")]
     Arithmetic {
-        operation: MatrixOperation,
+        operation: MatrixArithmeticOperation,
         dimension_error: DimensionError,
     },
 
@@ -21,7 +21,7 @@ pub enum MatrixError {
 }
 
 #[derive(Debug, Error)]
-pub enum MatrixOperation {
+pub enum MatrixArithmeticOperation {
     #[error("Matrix Addition")]
     Addition,
     #[error("Matrix Multiplication")]
@@ -103,7 +103,7 @@ impl MatrixError {
     pub fn multiplication<E>(lhs: &Matrix<E>, rhs: &Matrix<E>) -> Result<(), Self> {
         return if lhs.width() != rhs.height() {
             Err(MatrixError::Arithmetic {
-                operation: MatrixOperation::Multiplication,
+                operation: MatrixArithmeticOperation::Multiplication,
                 dimension_error: DimensionError::LhsWidthNotEqualToRhsHeight {
                     lhs_width: lhs.width(),
                     rhs_height: rhs.height(),
@@ -127,7 +127,7 @@ impl MatrixError {
     pub fn hadamard_product<E>(lhs: &Matrix<E>, rhs: &Matrix<E>) -> Result<(), Self> {
         return if lhs.width() != rhs.width() || lhs.height() != rhs.height() {
             Err(MatrixError::Arithmetic {
-                operation: MatrixOperation::HadamardProduct,
+                operation: MatrixArithmeticOperation::HadamardProduct,
                 dimension_error: DimensionError::DifferentDimensions {
                     lhs_width: lhs.width(),
                     lhs_height: lhs.height(),
@@ -154,7 +154,7 @@ impl MatrixError {
     pub fn addition<E>(lhs: &Matrix<E>, rhs: &Matrix<E>) -> Result<(), Self> {
         return if lhs.width() != rhs.width() || lhs.height() != rhs.height() {
             Err(MatrixError::Arithmetic {
-                operation: MatrixOperation::Addition,
+                operation: MatrixArithmeticOperation::Addition,
                 dimension_error: DimensionError::DifferentDimensions {
                     lhs_width: lhs.width(),
                     lhs_height: lhs.height(),
