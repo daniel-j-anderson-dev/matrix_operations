@@ -23,6 +23,7 @@ impl<E: Num + Copy> Matrix<E> {
             for rhs_col_index in 0..rhs.width() {
                 let mut dot_product = E::zero();
 
+                // I could have used rhs.height() since [MatrixError::multiplication] will return [Result::Err] if `self.width` != `rhs.height`
                 for element_index in 0..self.width() {
                     let lhs_element = self[lhs_row_index][element_index];
                     let rhs_element = rhs[element_index][rhs_col_index];
@@ -48,10 +49,8 @@ impl<E: Num + Copy> Matrix<E> {
     pub fn scalar_multiply(&self, scalar: E) -> Self {
         let mut product = Matrix::zeros(self.height_nonzero(), self.width_nonzero());
 
-        for row_index in 0..self.height() {
-            for column_index in 0..self.width() {
-                product[row_index][column_index] = self[row_index][column_index] * scalar;
-            }
+        for (index, product_element) in product.elements_mut_enumerated() {
+            *product_element = self[index] * scalar;
         }
 
         return product;
@@ -71,11 +70,8 @@ impl<E: Num + Copy> Matrix<E> {
 
         let mut sum = Matrix::zeros(self.height_nonzero(), self.width_nonzero());
 
-        for row_index in 0..self.height() {
-            for column_index in 0..self.width() {
-                sum[row_index][column_index] =
-                    self[row_index][column_index] + rhs[row_index][column_index];
-            }
+        for (index, sum_element) in sum.elements_mut_enumerated() {
+            *sum_element = self[index] + rhs[index];
         }
 
         return Ok(sum);
@@ -97,8 +93,8 @@ impl<E: Num + Copy> Matrix<E> {
         MatrixError::minor(self, excluded_row_index, excluded_column_index)?;
 
         let mut minor = Matrix::zeros(
-            NonZeroUsize::new(self.height() - 1).expect("height is greater than 1"),
-            NonZeroUsize::new(self.width() - 1).expect("width is greater than 1"),
+            NonZeroUsize::new(self.height() - 1).expect("height cannot be zero"),
+            NonZeroUsize::new(self.width() - 1).expect("width cannot be zero"),
         );
 
         let mut minor_row_index = 0;
@@ -113,13 +109,10 @@ impl<E: Num + Copy> Matrix<E> {
                     continue;
                 }
 
-                if let Some(minor_element) = minor
-                    .elements
-                    .get_mut(minor_row_index)
-                    .and_then(|row| row.get_mut(minor_column_index))
-                {
-                    *minor_element = self[self_row_index][self_column_index];
-                }
+                minor.set_element(
+                    (minor_row_index, minor_column_index),
+                    self[self_row_index][self_column_index],
+                );
 
                 minor_column_index += 1;
             }
