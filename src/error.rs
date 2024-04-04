@@ -18,6 +18,9 @@ pub enum MatrixError {
 
     #[error("Cannot Calculate Inverse because {0}")]
     Inverse(#[from] InverseError),
+    
+    #[error("Cannot create matrix because {0}")]
+    DimensionError(#[from] DimensionError)
 }
 
 #[derive(Debug, Error)]
