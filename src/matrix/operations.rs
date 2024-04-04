@@ -136,7 +136,7 @@ impl<E: Num + Copy> Matrix<E> {
     }
 }
 
-impl<E: Num + Neg<Output = E> + Copy + Debug> Matrix<E> {
+impl<E: Num + Neg<Output = E> + Copy> Matrix<E> {
     /// Constructs the cofactor <br>
     /// <img src="https://i.imgur.com/0mAVFR3.png" width()=50% height=50%> <br>
     /// - `cofactor` == `(-1)ⁱ⁺ʲ * Mᵢⱼ`
@@ -196,6 +196,8 @@ impl<E: Num + Neg<Output = E> + Copy + Debug> Matrix<E> {
     }
 
     pub fn inverse(&self) -> Result<Self, MatrixError> {
+        MatrixError::inverse(self)?;
+        
         unimplemented!();
     }
 }
