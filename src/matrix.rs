@@ -144,6 +144,13 @@ impl MatrixIndex {
     pub fn set_column(&mut self, column_index: usize) {
         self.column = column_index;
     }
+
+    pub fn transpose(&self) -> Self {
+        return Self {
+            row: self.column,
+            column: self.row,
+        };
+    }
 }
 impl From<(usize, usize)> for MatrixIndex {
     /// `(row_index, column_index)`
