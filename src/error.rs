@@ -3,7 +3,7 @@ use std::ops::Neg;
 use num::Num;
 use thiserror::Error;
 
-use crate::Matrix;
+use crate::{matrix::MatrixIndex, Matrix};
 
 #[derive(Debug, Error)]
 pub enum MatrixError {
@@ -21,9 +21,9 @@ pub enum MatrixError {
 
     #[error("Cannot Calculate Inverse because {0}")]
     Inverse(#[from] InverseError),
-    
+
     #[error("Cannot create matrix because {0}")]
-    DimensionError(#[from] DimensionError)
+    DimensionError(#[from] DimensionError),
 }
 impl MatrixError {
     /// Check if two matrices can be multiplied <br>
@@ -115,18 +115,13 @@ impl MatrixError {
     ///   - if `excluded_row_index` >= `matrix.height`
     ///   - if `excluded_column_index` >= `matrix.width`
     ///   - if `matrix` is not square
-    pub fn minor<E>(
-        matrix: &Matrix<E>,
-        excluded_row_index: usize,
-        excluded_column_index: usize,
-    ) -> Result<(), Self> {
-        return if excluded_row_index >= matrix.height() {
-            Err(DeterminantError::MinorError(MinorError::NoSuchRow(excluded_row_index)).into())
-        } else if excluded_column_index >= matrix.width() {
-            Err(
-                DeterminantError::MinorError(MinorError::NoSuchColumn(excluded_column_index))
-                    .into(),
-            )
+    pub fn minor<E>(matrix: &Matrix<E>, index: impl Into<MatrixIndex>) -> Result<(), Self> {
+        let index = index.into();
+
+        return if index.row() >= matrix.height() {
+            Err(DeterminantError::MinorError(MinorError::NoSuchRow(index.row())).into())
+        } else if index.column() >= matrix.width() {
+            Err(DeterminantError::MinorError(MinorError::NoSuchColumn(index.column())).into())
         } else if matrix.width() == 0 || matrix.height() == 0 {
             Err(DeterminantError::DimensionError(DimensionError::Zero).into())
         } else if matrix.width() < 2 || matrix.height() < 2 {
@@ -150,13 +145,13 @@ impl MatrixError {
     ///   - if either dimension of `matrix` is `0`
     pub fn determinant<E>(matrix: &Matrix<E>) -> Result<(), Self> {
         return if matrix.width() == 0 || matrix.height() == 0 {
-            Err(MatrixError::Determinant(
-                DeterminantError::DimensionError(DimensionError::Zero),
-            ))
+            Err(MatrixError::Determinant(DeterminantError::DimensionError(
+                DimensionError::Zero,
+            )))
         } else if matrix.width() != matrix.height() {
-            Err(MatrixError::Determinant(
-                DeterminantError::DimensionError(DimensionError::NotSquare),
-            ))
+            Err(MatrixError::Determinant(DeterminantError::DimensionError(
+                DimensionError::NotSquare,
+            )))
         } else {
             Ok(())
         };
@@ -176,13 +171,13 @@ impl MatrixError {
     ///   - if the determinant of `matrix` is `0`
     pub fn inverse<E: Num + Neg<Output = E> + Copy>(matrix: &Matrix<E>) -> Result<(), Self> {
         return if matrix.width() == 0 || matrix.height() == 0 {
-            Err(MatrixError::Inverse(
-                InverseError::DimensionError(DimensionError::Zero),
-            ))
+            Err(MatrixError::Inverse(InverseError::DimensionError(
+                DimensionError::Zero,
+            )))
         } else if matrix.width() != matrix.height() {
-            Err(MatrixError::Inverse(
-                InverseError::DimensionError(DimensionError::NotSquare),
-            ))
+            Err(MatrixError::Inverse(InverseError::DimensionError(
+                DimensionError::NotSquare,
+            )))
         } else if matrix.determinant()?.is_zero() {
             Err(MatrixError::Inverse(InverseError::DeterminantZero))
         } else {
@@ -212,10 +207,7 @@ pub enum DimensionError {
     },
 
     #[error("the width of lhs matrix does not equal the height of rhs matrix (lhs width: {lhs_width}, rhs height: {rhs_height})")]
-    LhsWidthNotEqualToRhsHeight { 
-        lhs_width: usize,
-        rhs_height: usize
-    },
+    LhsWidthNotEqualToRhsHeight { lhs_width: usize, rhs_height: usize },
 
     #[error("the matrix is not square")]
     NotSquare,
