@@ -21,6 +21,35 @@ impl<E> Matrix<E> {
     pub fn height_nonzero(&self) -> NonZeroUsize {
         return NonZeroUsize::new(self.height()).expect("height cannot be zero");
     }
+}
+impl<E> Matrix<E> {
+    pub fn get_row(&self, index: MatrixIndex) -> Option<&[E]> {
+        return self.elements.get(index.row()).map(|row| row.as_ref());
+    }
+    pub fn get_element(&self, index: impl Into<MatrixIndex>) -> Option<&E> {
+        let index = index.into();
+        return self
+            .elements
+            .get(index.row())
+            .and_then(|row| row.get(index.column()));
+    }
+    /// Set the `self[index] = value` if index is valid
+    pub fn set_element(&mut self, index: impl Into<MatrixIndex>, value: E) -> Option<()> {
+        return self.get_element_mut(index).map(|element| *element = value);
+    }
+    pub fn get_row_mut(&mut self, index: impl Into<MatrixIndex>) -> Option<&mut [E]> {
+        let index = index.into();
+        return self.elements.get_mut(index.row()).map(|row| row.as_mut());
+    }
+    pub fn get_element_mut(&mut self, index: impl Into<MatrixIndex>) -> Option<&mut E> {
+        let index = index.into();
+        return self
+            .elements
+            .get_mut(index.row())
+            .and_then(|row| row.get_mut(index.column()));
+    }
+}
+impl<E> Matrix<E> {
     pub fn rows(&self) -> impl Iterator<Item = &[E]> {
         return self.elements.iter().map(Box::as_ref);
     }
@@ -54,31 +83,6 @@ impl<E> Matrix<E> {
                     .enumerate()
                     .map(move |(column_index, element)| ((row_index, column_index).into(), element))
             });
-    }
-    pub fn get_row(&self, index: MatrixIndex) -> Option<&[E]> {
-        return self.elements.get(index.row()).map(|row| row.as_ref());
-    }
-    pub fn get_element(&self, index: impl Into<MatrixIndex>) -> Option<&E> {
-        let index = index.into();
-        return self
-            .elements
-            .get(index.row())
-            .and_then(|row| row.get(index.column()));
-    }
-    /// Set the `self[index] = value` if index is valid
-    pub fn set_element(&mut self, index: impl Into<MatrixIndex>, value: E) -> Option<()> {
-        return self.get_element_mut(index).map(|element| *element = value);
-    }
-    pub fn get_row_mut(&mut self, index: impl Into<MatrixIndex>) -> Option<&mut [E]> {
-        let index = index.into();
-        return self.elements.get_mut(index.row()).map(|row| row.as_mut());
-    }
-    pub fn get_element_mut(&mut self, index: impl Into<MatrixIndex>) -> Option<&mut E> {
-        let index = index.into();
-        return self
-            .elements
-            .get_mut(index.row())
-            .and_then(|row| row.get_mut(index.column()));
     }
 }
 impl<E: Num + Copy> Matrix<E> {
