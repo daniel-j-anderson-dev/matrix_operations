@@ -176,3 +176,26 @@ fn determinant() {
     assert_eq!(determinant, expected_determinant);
     // assert_eq!(determinant2, expected_determinant);
 }
+
+#[test]
+fn inverse() {
+    let matrix = Matrix::try_from([[1.0, 2.0, 3.0], [0.0, 1.0, 4.0], [5.0, 6.0, 0.0]]).unwrap();
+
+    let inverse = matrix.inverse().unwrap();
+
+    let expected_inverse =
+        Matrix::try_from([[-24.0, 18.0, 5.0], [20.0, -15.0, -4.0], [-5.0, 4.0, 1.0]]).unwrap();
+
+    assert_eq!(inverse, expected_inverse)
+}
+
+#[test]
+fn transpose() {
+    let matrix = Matrix::try_from([[1, 4], [2, 5], [3, 6]]).unwrap();
+
+    let expected_transpose = Matrix::try_from([[1, 2, 3], [4, 5, 6]]).unwrap();
+
+    let transpose = matrix.transpose();
+
+    assert_eq!(transpose, expected_transpose);
+}
