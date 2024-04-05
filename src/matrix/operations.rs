@@ -1,10 +1,20 @@
-use std::{fmt::Debug, num::NonZeroUsize, ops::Neg};
+use std::{num::NonZeroUsize, ops::Neg};
 
-use num::Num;
+use num::{Float, Num};
 
-use crate::{Matrix, MatrixError};
+use crate::{Matrix, MatrixError, MatrixIndex};
 
 impl<E: Num + Copy> Matrix<E> {
+    pub fn transpose(&self) -> Self {
+        let mut transpose = Matrix::zeros(self.width_nonzero(), self.height_nonzero());
+
+        transpose
+            .elements_mut_enumerated()
+            .for_each(|(index, element)| *element = self[index.transpose()]);
+
+        return transpose;
+    }
+
     /// Calculate the matrix product of `self` and `rhs`. <br>
     /// The sum of dot products of `self` rows and `rhs` columns.
     /// ## Parameters
@@ -40,7 +50,7 @@ impl<E: Num + Copy> Matrix<E> {
         return Ok(product);
     }
 
-    pub fn hadamard_product(&self, rhs: &Self) -> Result<Self, MatrixError> {
+    pub fn hadamard_multiply(&self, rhs: &Self) -> Result<Self, MatrixError> {
         MatrixError::hadamard_product(self, rhs)?;
 
         let mut product = Matrix::zeros(self.height_nonzero(), self.width_nonzero());
@@ -97,39 +107,34 @@ impl<E: Num + Copy> Matrix<E> {
     /// - [MatrixError::InvalidMinor]
     ///   - if `self.width()` != `rhs.height`
     ///   - if `excluded_row_index` or `excluded_column_index` are out of bounds
-    pub fn minor(
-        &self,
-        excluded_row_index: usize,
-        excluded_column_index: usize,
-    ) -> Result<Self, MatrixError> {
-        MatrixError::minor(self, excluded_row_index, excluded_column_index)?;
+    pub fn minor(&self, index: impl Into<MatrixIndex>) -> Result<Self, MatrixError> {
+        let excluded_index = index.into();
+
+        MatrixError::minor(self, excluded_index)?;
 
         let mut minor = Matrix::zeros(
             NonZeroUsize::new(self.height() - 1).expect("height cannot be zero"),
             NonZeroUsize::new(self.width() - 1).expect("width cannot be zero"),
         );
 
-        let mut minor_row_index = 0;
+        let mut minor_index = MatrixIndex::from((0, 0));
         for self_row_index in 0..self.height() {
-            if self_row_index == excluded_row_index {
+            if self_row_index == excluded_index.row() {
                 continue;
             }
 
-            let mut minor_column_index = 0;
+            minor_index.set_column(0);
             for self_column_index in 0..self.width() {
-                if self_column_index == excluded_column_index {
+                if self_column_index == excluded_index.column() {
                     continue;
                 }
 
-                minor.set_element(
-                    (minor_row_index, minor_column_index),
-                    self[self_row_index][self_column_index],
-                );
+                minor.set_element(minor_index, self[self_row_index][self_column_index]);
 
-                minor_column_index += 1;
+                minor_index.increment_column();
             }
 
-            minor_row_index += 1;
+            minor_index.increment_row();
         }
 
         return Ok(minor);
@@ -144,22 +149,34 @@ impl<E: Num + Neg<Output = E> + Copy> Matrix<E> {
     /// ## Errors
     /// - [MatrixError::Determinant]
     ///   - if `self.width()` != `rhs.height`
-    pub fn cofactor(&self, row_index: usize, column_index: usize) -> Result<E, MatrixError> {
-        let sign = if row_index + column_index % 2 == 0 {
+    pub fn cofactor(&self, index: impl Into<MatrixIndex>) -> Result<E, MatrixError> {
+        let index = index.into();
+
+        let sign = if (index.row() + index.column()) % 2 == 0 {
             -E::one()
         } else {
             E::one()
         };
 
-        let minor = self.minor(row_index, column_index)?;
+        let minor = self.minor(index)?;
 
         let minor_determinant = minor.determinant()?;
 
         return Ok(sign * minor_determinant);
     }
 
+    pub fn cofactor_matrix(&self) -> Result<Self, MatrixError> {
+        let mut cofactor_matrix = Matrix::zeros(self.height_nonzero(), self.width_nonzero());
+
+        for (index, _) in self.elements_enumerated() {
+            cofactor_matrix[index] = self.cofactor(index)?;
+        }
+
+        return Ok(cofactor_matrix);
+    }
+
     /// Constructs the determinant <br>
-    /// <img src="https://i.imgur.com/0mAVFR3.png" width()=50% height=50%> <br>
+    /// <img src="https://i.imgur.com/0mAVFR3.png" width=50% height=50%> <br>
     /// - `determinant` == `Σ(1..=n) { (-1)ⁱ⁺ʲ * Mᵢⱼ * aᵢⱼ }`
     /// - `(-1)ⁱ⁺ʲ * Mᵢⱼ` == `self.cofactor(i, j)`
     /// - `aᵢⱼ` == element at `self[i][j]`
@@ -188,16 +205,33 @@ impl<E: Num + Neg<Output = E> + Copy> Matrix<E> {
         const FIRST_ROW_INDEX: usize = 0;
         for column_index in 0..self.width() {
             let element = self[FIRST_ROW_INDEX][column_index];
-            let cofactor = self.cofactor(FIRST_ROW_INDEX, column_index)?;
+            let cofactor = self.cofactor((FIRST_ROW_INDEX, column_index))?;
             sum = sum + (cofactor * element);
         }
 
         return Ok(sum);
     }
+}
 
+impl<E: Float> Matrix<E> {
+    /// FIXME <br>
+    /// Constructs the inverse (by matrix multiplication) <br>
+    /// <img src="https://i.imgur.com/Gi79uxo.png" width=50% height=50%> <br>
+    /// `C`: Cofactor Matrix <br> <img src="https://i.imgur.com/s16kLKs.png" width=50% height=50%> <br>
+    /// `T`: Transpose operator
+    /// `det(A)`: determinant of matrix A
     pub fn inverse(&self) -> Result<Self, MatrixError> {
         MatrixError::inverse(self)?;
-        
-        unimplemented!();
+
+        let determinant = self.determinant()?;
+
+        // signs are wrong
+        let cofactor_matrix = self.cofactor_matrix()?;
+
+        let inverse = cofactor_matrix
+            .transpose()
+            .scalar_multiply(E::one() / determinant);
+
+        return Ok(inverse);
     }
 }
