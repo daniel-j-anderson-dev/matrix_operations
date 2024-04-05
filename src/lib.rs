@@ -4,4 +4,4 @@ pub mod matrix;
 pub mod test;
 
 pub use crate::error::*;
-pub use crate::matrix::Matrix;
+pub use crate::matrix::*;
