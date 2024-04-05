@@ -134,7 +134,7 @@ impl MatrixIndex {
 
     /// Add one to the column index
     pub fn increment_column(&mut self) {
-        self.row += 1;
+        self.column += 1;
     }
 
     pub fn set_row(&mut self, row_index: usize) {
