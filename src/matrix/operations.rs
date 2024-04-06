@@ -225,7 +225,6 @@ impl<E: Float> Matrix<E> {
 
         let determinant = self.determinant()?;
 
-        // signs are wrong
         let cofactor_matrix = self.cofactor_matrix()?;
 
         let inverse = cofactor_matrix
