@@ -92,15 +92,11 @@ impl<E: Num + Copy> Matrix<E> {
                 .into_boxed_slice(),
         };
     }
-    pub fn identity(height: NonZeroUsize, width: NonZeroUsize) -> Self {
-        let mut identity = Self::zeros(width, height);
+    pub fn identity(size: NonZeroUsize) -> Self {
+        let mut identity = Self::zeros(size, size);
 
-        for row_index in 0..height.get() {
-            for column_index in 0..width.get() {
-                if row_index == column_index {
-                    identity[row_index][column_index] = E::one();
-                }
-            }
+        for index in 0..size.get() {
+            identity[index][index] = E::one();
         }
 
         return identity;
