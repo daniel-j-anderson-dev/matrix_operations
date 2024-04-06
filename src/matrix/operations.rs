@@ -216,7 +216,7 @@ impl<E: Num + Neg<Output = E> + Copy> Matrix<E> {
 impl<E: Float> Matrix<E> {
     /// Constructs the inverse (by matrix multiplication) <br>
     /// <img src="https://i.imgur.com/Gi79uxo.png" width=50% height=50%> <br>
-    /// `C`: Cofactor Matrix. A matrix with the same size as `self` and each element is equal to the cofactor of `self` at that same index <br> 
+    /// `C`: Cofactor Matrix. A matrix with the same size as `self` and each element is equal to the cofactor of `self` at that same index <br>
     /// <img src="https://i.imgur.com/s16kLKs.png" width=25% height=25%> <br>
     /// `T`: Transpose operator
     /// `det(A)`: determinant of matrix A
