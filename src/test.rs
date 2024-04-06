@@ -147,53 +147,81 @@ fn determinant_1x1() {
 }
 
 #[test]
-fn determinant() {
+fn determinant_10x10() {
+    let matrix2 = Matrix::try_from([
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+    ])
+    .unwrap();
+    let expected_determinant = 0;
+    let determinant = matrix2.determinant().unwrap();
+    assert_eq!(determinant, expected_determinant);
+}
+
+#[test]
+fn determinant3x3() {
     let matrix = Matrix::try_from([
         [1, 2, 3], //
         [4, 5, 6],
         [7, 8, 9],
     ])
     .unwrap();
-    // let matrix2 = Matrix::try_from([
-    //     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-    //     [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
-    //     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-    //     [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
-    //     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-    //     [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
-    //     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-    //     [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
-    //     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-    //     [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
-    // ])
-    // .unwrap();
 
     let expected_determinant = 0;
 
     let determinant = matrix.determinant().unwrap();
-    // let determinant2 = matrix2.determinant().unwrap();
 
     assert_eq!(determinant, expected_determinant);
-    // assert_eq!(determinant2, expected_determinant);
 }
 
 #[test]
 fn inverse() {
-    let matrix = Matrix::try_from([[1.0, 2.0, 3.0], [0.0, 1.0, 4.0], [5.0, 6.0, 0.0]]).unwrap();
+    let matrix = Matrix::try_from([
+        [1.0, 2.0, 3.0], //
+        [0.0, 1.0, 4.0],
+        [5.0, 6.0, 0.0],
+    ])
+    .unwrap();
 
     let inverse = matrix.inverse().unwrap();
 
-    let expected_inverse =
-        Matrix::try_from([[-24.0, 18.0, 5.0], [20.0, -15.0, -4.0], [-5.0, 4.0, 1.0]]).unwrap();
+    let identity = matrix.matrix_multiply(&inverse).unwrap();
 
-    assert_eq!(inverse, expected_inverse)
+    let expected_inverse = Matrix::try_from([
+        [-24.0, 18.0, 5.0], //
+        [20.0, -15.0, -4.0],
+        [-5.0, 4.0, 1.0],
+    ])
+    .unwrap();
+
+    let expected_identity = Matrix::<f64>::identity(matrix.width_nonzero());
+
+    assert_eq!(inverse, expected_inverse);
+    assert_eq!(identity, expected_identity);
 }
 
 #[test]
 fn transpose() {
-    let matrix = Matrix::try_from([[1, 4], [2, 5], [3, 6]]).unwrap();
+    let matrix = Matrix::try_from([
+        [1, 4], //
+        [2, 5],
+        [3, 6],
+    ])
+    .unwrap();
 
-    let expected_transpose = Matrix::try_from([[1, 2, 3], [4, 5, 6]]).unwrap();
+    let expected_transpose = Matrix::try_from([
+        [1, 2, 3], //
+        [4, 5, 6],
+    ])
+    .unwrap();
 
     let transpose = matrix.transpose();
 
