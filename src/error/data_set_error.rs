@@ -40,9 +40,13 @@ impl ParseDataSetError {
     pub fn parse_value_error<E: std::error::Error + 'static>(
         line_number: usize,
         parse_error: E,
+        unparsed_value: String,
     ) -> Self {
         return Self {
-            kind: ParseDataSetErrorKind::ParseValueError(parse_error.into()),
+            kind: ParseDataSetErrorKind::ParseValueError{
+                parse_error: parse_error.into(),
+                unparsed_value,
+            },
             line_number,
         };
     }
@@ -59,6 +63,9 @@ pub enum ParseDataSetErrorKind {
     #[error("There are too many columns for one (input, output) pair")]
     TooManyColumns,
 
-    #[error("{0} is not a valid value")]
-    ParseValueError(#[from] Box<dyn std::error::Error>),
+    #[error("Could not parse {unparsed_value} because {parse_error}")]
+    ParseValueError{
+        parse_error: Box<dyn std::error::Error>,
+        unparsed_value: String,
+    },
 }
