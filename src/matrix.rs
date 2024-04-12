@@ -1,4 +1,8 @@
-use std::num::NonZeroUsize;
+use std::{
+    num::NonZeroUsize,
+    ops::Index,
+};
+
 
 use num::Num;
 
@@ -50,6 +54,12 @@ impl<E> Matrix<E> {
     }
 }
 impl<E> Matrix<E> {
+    pub fn column(&self, column_index: usize) -> impl Iterator<Item = &E> {
+        return (0..self.height()).map(move |row_index| self.index(row_index).index(column_index));
+    }
+    pub fn columns(&self) -> impl Iterator<Item = impl Iterator<Item = &E>> {
+        return (0..self.width()).map(|column_index| self.column(column_index));
+    }
     pub fn rows(&self) -> impl Iterator<Item = &[E]> {
         return self.elements.iter().map(Box::as_ref);
     }
