@@ -11,7 +11,7 @@ pub trait Regression<T> {
 
 impl<F: Float> DataSet<F> {
     pub fn polynomial_input_matrix(&self, degree: usize) -> Matrix<F> {
-        let width = NonZeroUsize::new(degree + 1).expect("usize + 1 is always >");
+        let width = NonZeroUsize::new(degree + 1).expect("usize + 1 is always > 0");
         let height = self.len_nonzero();
     
         let mut input_matrix = Matrix::zeros(height, width);
