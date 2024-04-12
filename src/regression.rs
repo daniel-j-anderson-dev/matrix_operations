@@ -17,7 +17,7 @@ impl<F: Float> DataSet<F> {
         let mut input_matrix = Matrix::zeros(height, width);
 
         for column_index in 0..=degree {
-            let exponent = (degree - column_index) as i32;
+            let exponent = column_index as i32;
 
             for row_index in 0..height.get() {
                 let input_value = self.data().index(row_index).input();
