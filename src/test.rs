@@ -246,3 +246,42 @@ fn parse_data_set() {
 fn read_data_set() {
     DataSet::<f64>::from_csv("./tests/dataset.csv").unwrap();
 }
+
+#[test]
+fn linear_regression() {
+    let data = DataSet::<f64>::from_csv("./tests/dataset.csv").unwrap();
+
+    let inputs = data.polynomial_input_matrix(1);
+    let outputs = data.polynomial_output_matrix();
+
+    let input_transpose = inputs.transpose();
+
+    let input_transpose_x_input = input_transpose.matrix_multiply(&inputs).unwrap();
+
+    let inverse_of_input_transpose_x_input = input_transpose_x_input
+        .inverse() // WRONG SIGNS ON DIAGONALS HERE
+        .unwrap();
+
+    let pseudo_inverse = inverse_of_input_transpose_x_input
+        .matrix_multiply(&input_transpose)
+        .unwrap();
+
+    let coefficient_matrix = pseudo_inverse.matrix_multiply(&outputs).unwrap();
+
+    let expected_coefficient_matrix = Matrix::try_from([
+        [-2.67], // x^0 coefficient
+        [9.51], // x^1 coefficient
+    ])
+    .unwrap();
+
+    dbg!(
+        inputs,
+        outputs,
+        input_transpose_x_input,
+        inverse_of_input_transpose_x_input,
+        pseudo_inverse,
+        &coefficient_matrix
+    );
+
+    assert_eq!(coefficient_matrix, expected_coefficient_matrix);
+}
