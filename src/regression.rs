@@ -13,27 +13,24 @@ impl<F: Float> DataSet<F> {
     pub fn polynomial_input_matrix(&self, degree: usize) -> Matrix<F> {
         let width = NonZeroUsize::new(degree + 1).expect("usize + 1 is always > 0");
         let height = self.len_nonzero();
-    
+
         let mut input_matrix = Matrix::zeros(height, width);
-    
+
         for column_index in 0..=degree {
             let exponent = (degree - column_index) as i32;
-    
+
             for row_index in 0..height.get() {
-                let input_value = self
-                    .data()
-                    .index(row_index)
-                    .input();
-    
+                let input_value = self.data().index(row_index).input();
+
                 let input_matrix_value = input_value.powi(exponent);
-    
+
                 input_matrix[row_index][column_index] = input_matrix_value;
             }
         }
         return input_matrix;
     }
 
-    pub fn polynomial_output_matrix(&self,) -> Matrix<F> {
+    pub fn polynomial_output_matrix(&self) -> Matrix<F> {
         /// This is safe because `1` is a valid value of [NonZeroUsize]
         const ONE: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(1) };
 

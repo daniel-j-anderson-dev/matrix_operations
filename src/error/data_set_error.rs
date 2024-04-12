@@ -43,7 +43,7 @@ impl ParseDataSetError {
         unparsed_value: String,
     ) -> Self {
         return Self {
-            kind: ParseDataSetErrorKind::ParseValueError{
+            kind: ParseDataSetErrorKind::ParseValueError {
                 parse_error: parse_error.into(),
                 unparsed_value,
             },
@@ -64,7 +64,7 @@ pub enum ParseDataSetErrorKind {
     TooManyColumns,
 
     #[error("Could not parse {unparsed_value} because {parse_error}")]
-    ParseValueError{
+    ParseValueError {
         parse_error: Box<dyn std::error::Error>,
         unparsed_value: String,
     },

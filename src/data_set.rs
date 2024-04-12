@@ -34,7 +34,6 @@ impl<T> DataSet<T> {
     }
 }
 
-
 impl<T> DataSet<T>
 where
     T: FromStr,
@@ -45,7 +44,7 @@ where
     /// - rightmost column is output values
     /// - each input/output pair is separated by a newline
     /// - example: `input, output\n`
-    /// 
+    ///
     /// ```csv
     ///    4.0,  33.0
     ///    4.5,  42.0
@@ -55,7 +54,7 @@ where
     ///    6.5,  61.0
     ///    7.0,  62.0
     /// ```
-    /// 
+    ///
     pub fn from_csv(path: impl AsRef<Path>) -> Result<Self, DataSetError> {
         let mut file_data = String::new();
 
@@ -86,19 +85,17 @@ where
                 .next()
                 .ok_or_else(|| ParseDataSetError::missing_input(line_index + 1))?
                 .trim();
-            let input = input.parse::<T>()
-                .map_err(|parse_error| {
-                    ParseDataSetError::parse_value_error(line_index + 1, parse_error, input.to_owned())
-                })?;
+            let input = input.parse::<T>().map_err(|parse_error| {
+                ParseDataSetError::parse_value_error(line_index + 1, parse_error, input.to_owned())
+            })?;
 
             let output = tokens
                 .next()
                 .ok_or_else(|| ParseDataSetError::missing_output(line_index + 1))?
                 .trim();
-            let output = output.parse::<T>()
-                .map_err(|parse_error| {
-                    ParseDataSetError::parse_value_error(line_index + 1, parse_error, output.to_owned())
-                })?;
+            let output = output.parse::<T>().map_err(|parse_error| {
+                ParseDataSetError::parse_value_error(line_index + 1, parse_error, output.to_owned())
+            })?;
 
             if tokens.next().is_some() {
                 return Err(ParseDataSetError::too_many_columns(line_index + 1));

@@ -1,8 +1,4 @@
-use std::{
-    num::NonZeroUsize,
-    ops::Index,
-};
-
+use std::{num::NonZeroUsize, ops::Index};
 
 use num::Num;
 
