@@ -227,3 +227,22 @@ fn transpose() {
 
     assert_eq!(transpose, expected_transpose);
 }
+
+#[test]
+fn parse_data_set() {
+    const DATA: &str = "
+    4.5,  42.0
+    5.0, 45.0
+    5.5, 51.0
+    6.0, 53.0
+    6.5, 61.0
+    7.0, 62.0
+    ";
+
+    DATA.parse::<DataSet<f64>>().unwrap();
+}
+
+#[test]
+fn read_data_set() {
+    DataSet::<f64>::from_csv("./tests/dataset.csv").unwrap();
+}
