@@ -85,17 +85,19 @@ where
             let input = tokens
                 .next()
                 .ok_or_else(|| ParseDataSetError::missing_input(line_index + 1))?
-                .parse::<T>()
+                .trim();
+            let input = input.parse::<T>()
                 .map_err(|parse_error| {
-                    ParseDataSetError::parse_value_error(line_index + 1, parse_error)
+                    ParseDataSetError::parse_value_error(line_index + 1, parse_error, input.to_owned())
                 })?;
 
             let output = tokens
                 .next()
                 .ok_or_else(|| ParseDataSetError::missing_output(line_index + 1))?
-                .parse::<T>()
+                .trim();
+            let output = output.parse::<T>()
                 .map_err(|parse_error| {
-                    ParseDataSetError::parse_value_error(line_index + 1, parse_error)
+                    ParseDataSetError::parse_value_error(line_index + 1, parse_error, output.to_owned())
                 })?;
 
             if tokens.next().is_some() {
