@@ -20,3 +20,4 @@ A simple test project for 2d matrix operations
     - Minor
     - Cofactor
   - Multiplicative Inverse
+  - A linear regresssion trait
