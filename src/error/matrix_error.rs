@@ -9,11 +9,11 @@ use crate::{matrix::MatrixIndex, Matrix};
 pub enum MatrixError {
     #[error("Cannot perform {operation} on matrices because {dimension_error}")]
     Arithmetic {
-        operation: MatrixArithmeticOperation,
+        operation: ArithmeticOperation,
         dimension_error: DimensionError,
     },
 
-    #[error("Cannot calculate determinant because {0}")]
+    #[error("{0}")]
     Minor(#[from] MinorError),
 
     #[error("Cannot calculate determinant because {0}")]
@@ -39,7 +39,7 @@ impl MatrixError {
     pub fn multiplication<E>(lhs: &Matrix<E>, rhs: &Matrix<E>) -> Result<(), Self> {
         return if lhs.width() != rhs.height() {
             Err(MatrixError::Arithmetic {
-                operation: MatrixArithmeticOperation::Multiplication,
+                operation: ArithmeticOperation::Multiplication,
                 dimension_error: DimensionError::LhsWidthNotEqualToRhsHeight {
                     lhs_width: lhs.width(),
                     rhs_height: rhs.height(),
@@ -63,7 +63,7 @@ impl MatrixError {
     pub fn hadamard_product<E>(lhs: &Matrix<E>, rhs: &Matrix<E>) -> Result<(), Self> {
         return if lhs.width() != rhs.width() || lhs.height() != rhs.height() {
             Err(MatrixError::Arithmetic {
-                operation: MatrixArithmeticOperation::HadamardProduct,
+                operation: ArithmeticOperation::HadamardProduct,
                 dimension_error: DimensionError::DifferentDimensions {
                     lhs_width: lhs.width(),
                     lhs_height: lhs.height(),
@@ -89,7 +89,7 @@ impl MatrixError {
     pub fn addition<E>(lhs: &Matrix<E>, rhs: &Matrix<E>) -> Result<(), Self> {
         return if lhs.width() != rhs.width() || lhs.height() != rhs.height() {
             Err(MatrixError::Arithmetic {
-                operation: MatrixArithmeticOperation::Addition,
+                operation: ArithmeticOperation::Addition,
                 dimension_error: DimensionError::DifferentDimensions {
                     lhs_width: lhs.width(),
                     lhs_height: lhs.height(),
@@ -118,19 +118,19 @@ impl MatrixError {
     pub fn minor<E>(matrix: &Matrix<E>, index: impl Into<MatrixIndex>) -> Result<(), Self> {
         let index = index.into();
 
-        return if index.row() >= matrix.height() {
-            Err(DeterminantError::MinorError(MinorError::NoSuchRow(index.row())).into())
+        if index.row() >= matrix.height() {
+            Err(MinorError::NoSuchRow(index.row()))?
         } else if index.column() >= matrix.width() {
-            Err(DeterminantError::MinorError(MinorError::NoSuchColumn(index.column())).into())
+            Err(MinorError::NoSuchColumn(index.column()))?
         } else if matrix.width() == 0 || matrix.height() == 0 {
-            Err(DeterminantError::DimensionError(DimensionError::Zero).into())
+            Err(MinorError::from(DimensionError::Zero))?
         } else if matrix.width() < 2 || matrix.height() < 2 {
-            Err(DeterminantError::DimensionError(DimensionError::TooSmall).into())
+            Err(MinorError::from(DimensionError::TooSmall))?
         } else if matrix.width() != matrix.height() {
-            Err(DeterminantError::DimensionError(DimensionError::NotSquare).into())
+            Err(MinorError::from(DimensionError::NotSquare))?
         } else {
             Ok(())
-        };
+        }
     }
 
     /// Use this to check if a matrix, and index pair form a valid minor <br>
@@ -187,7 +187,7 @@ impl MatrixError {
 }
 
 #[derive(Debug, Error)]
-pub enum MatrixArithmeticOperation {
+pub enum ArithmeticOperation {
     #[error("Matrix Addition")]
     Addition,
     #[error("Matrix Multiplication")]
@@ -221,10 +221,12 @@ pub enum DimensionError {
 
 #[derive(Debug, Error)]
 pub enum MinorError {
-    #[error("The Minor does not exist at row index {0} is out of bounds")]
+    #[error("The Minor does not exist at row index {0} because row index {0} is out of bounds")]
     NoSuchRow(usize),
 
-    #[error("The Minor does not exist at column index {0} is out of bounds")]
+    #[error(
+        "The Minor does not exist at column index {0} because column index {0} is out of bounds"
+    )]
     NoSuchColumn(usize),
 
     #[error("The Minor does not exist because {0}")]
