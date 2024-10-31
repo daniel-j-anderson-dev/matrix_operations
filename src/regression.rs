@@ -1,4 +1,4 @@
-use std::{fmt::Debug, num::NonZeroUsize, ops::Index};
+use std::num::NonZeroUsize;
 
 use num::Float;
 
@@ -11,20 +11,22 @@ pub trait Regression<T> {
 
 impl<F: Float> DataSet<F> {
     pub fn polynomial_input_matrix(&self, degree: usize) -> Matrix<F> {
-        let width = NonZeroUsize::new(degree + 1).expect("usize + 1 is always > 0");
+        // SAFETY: any usize value + 1 is always > 0
+        let width = unsafe { NonZeroUsize::new_unchecked(degree + 1) };
         let height = self.len_nonzero();
 
         let mut input_matrix = Matrix::zeros(height, width);
 
-        for column_index in 0..=degree {
+        for column_index in 0..width.get() {
             let exponent = column_index as i32;
 
             for row_index in 0..height.get() {
-                let input_value = self.data().index(row_index).input();
+                // SAFETY: row_index is inbounds because the input_matrix was declared with height
+                let input_value = unsafe { self.data().get_unchecked(row_index).input() };
 
                 let input_matrix_value = input_value.powi(exponent);
 
-                input_matrix[row_index][column_index] = input_matrix_value;
+                input_matrix[(row_index, column_index)] = input_matrix_value;
             }
         }
         return input_matrix;
@@ -38,16 +40,17 @@ impl<F: Float> DataSet<F> {
         let mut output_matrix = Matrix::zeros(height, ONE);
 
         for row_index in 0..height.get() {
-            let output_value = self.data().index(row_index).output();
+            // SAFETY: row_index is inbounds because the output_matrix was declared with height
+            let output_value = unsafe { self.data().get_unchecked(row_index).output() };
 
-            output_matrix[row_index][0] = *output_value;
+            output_matrix[(row_index, 0)] = *output_value;
         }
 
         return output_matrix;
     }
 }
 
-impl<F: Float + Debug> Regression<F> for DataSet<F> {
+impl<F: Float> Regression<F> for DataSet<F> {
     type Error = MatrixError;
     fn polynomial_regression(&self, degree: usize) -> Result<Matrix<F>, Self::Error> {
         let input_matrix = self.polynomial_input_matrix(degree);
@@ -61,8 +64,6 @@ impl<F: Float + Debug> Regression<F> for DataSet<F> {
             .matrix_multiply(&input_transpose)?;
 
         let coefficient_matrix = pseudo_inverse.matrix_multiply(&output_matrix)?;
-
-        dbg!(&input_matrix, &output_matrix, &coefficient_matrix);
 
         return Ok(coefficient_matrix);
     }
