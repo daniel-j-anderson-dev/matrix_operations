@@ -26,8 +26,9 @@ impl<E> IndexMut<usize> for Matrix<E> {
         return self.elements.index_mut(index);
     }
 }
-impl<E> IndexMut<MatrixIndex> for Matrix<E> {
-    fn index_mut(&mut self, index: MatrixIndex) -> &mut Self::Output {
+impl<E, I: Into<MatrixIndex>> IndexMut<I> for Matrix<E> {
+    fn index_mut(&mut self, index: I) -> &mut Self::Output {
+        let index = index.into();
         return self
             .elements
             .index_mut(index.row())
