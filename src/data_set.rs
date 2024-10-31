@@ -1,4 +1,4 @@
-use std::{fs::OpenOptions, io::Read, num::NonZeroUsize, path::Path, str::FromStr};
+use std::{fs, num::NonZeroUsize, path::Path, str::FromStr};
 
 use crate::error::{DataSetError, ParseDataSetError};
 
@@ -56,16 +56,9 @@ where
     /// ```
     ///
     pub fn from_csv(path: impl AsRef<Path>) -> Result<Self, DataSetError> {
-        let mut file_data = String::new();
-
-        OpenOptions::new()
-            .read(true)
-            .open(path)?
-            .read_to_string(&mut file_data)?;
-
+        let file_data = fs::read_to_string(path)?;
         let data_set = file_data.parse()?;
-
-        return Ok(data_set);
+        Ok(data_set)
     }
 }
 
@@ -110,47 +103,24 @@ where
     }
 }
 
-impl<T, const N: usize> TryFrom<[(T, T); N]> for DataSet<T>
-where
-    T: FromStr + Copy,
-    T::Err: std::error::Error,
-{
+impl<T: Copy, const N: usize> TryFrom<[(T, T); N]> for DataSet<T> {
     type Error = DataSetError;
     fn try_from(value: [(T, T); N]) -> Result<Self, Self::Error> {
-        if N == 0 {
-            return Err(DataSetError::Empty);
-        }
-
-        let mut data = Vec::new();
-
-        for (input, output) in value.into_iter() {
-            let data_point = DataPoint { input, output };
-
-            data.push(data_point);
-        }
-
-        return Ok(Self { data });
+        TryFrom::try_from(value.as_slice())
     }
 }
 
-impl<T> TryFrom<&[(T, T)]> for DataSet<T>
-where
-    T: FromStr + Copy,
-    T::Err: std::error::Error + 'static,
-{
+impl<T: Copy> TryFrom<&[(T, T)]> for DataSet<T> {
     type Error = DataSetError;
     fn try_from(value: &[(T, T)]) -> Result<Self, Self::Error> {
         if value.len() == 0 {
             return Err(DataSetError::Empty);
         }
 
-        let mut data = Vec::new();
-
-        for (input, output) in value.into_iter().copied() {
-            let data_point = DataPoint { input, output };
-
-            data.push(data_point);
-        }
+        let data = value
+            .into_iter()
+            .map(|&(input, output)| DataPoint { input, output })
+            .collect();
 
         return Ok(Self { data });
     }
