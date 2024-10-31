@@ -1,4 +1,7 @@
-use std::{num::NonZeroUsize, ops::Neg};
+use std::{
+    num::NonZeroUsize,
+    ops::Neg,
+};
 
 use num::{Float, Num};
 
@@ -153,9 +156,9 @@ impl<E: Num + Neg<Output = E> + Copy> Matrix<E> {
         let index = index.into();
 
         let sign = if (index.row() + index.column()) % 2 == 0 {
-            -E::one()
-        } else {
             E::one()
+        } else {
+            -E::one()
         };
 
         let minor = self.minor(index)?;
@@ -218,7 +221,7 @@ impl<E: Float> Matrix<E> {
     /// <img src="https://i.imgur.com/Gi79uxo.png" width=50% height=50%> <br>
     /// `C`: Cofactor Matrix. A matrix with the same size as `self` and each element is equal to the cofactor of `self` at that same index <br>
     /// <img src="https://i.imgur.com/s16kLKs.png" width=25% height=25%> <br>
-    /// `T`: Transpose operator
+    /// `T`: Transpose operator <br>
     /// `det(A)`: determinant of matrix A
     pub fn inverse(&self) -> Result<Self, MatrixError> {
         MatrixError::inverse(self)?;
