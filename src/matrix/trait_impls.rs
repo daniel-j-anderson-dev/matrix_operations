@@ -65,10 +65,7 @@ impl<Element, const WIDTH: usize, const HEIGHT: usize> TryFrom<[[Element; WIDTH]
             return Err(DimensionError::Zero.into());
         }
         return Ok(Matrix {
-            elements: elements
-                .into_iter()
-                .map(|row| row.into_iter().collect())
-                .collect(),
+            elements: elements.into_iter().map(|row| Box::new(row) as _).collect(),
         });
     }
 }
