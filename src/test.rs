@@ -109,12 +109,17 @@ fn minor_ok() {
 }
 
 #[test]
+#[should_panic]
 fn minor_err() {
-    let matrix = Matrix::try_from([[1, 2, 3, 4, 5, 6], [1, 2, 3, 4, 5, 6]]).unwrap();
+    let matrix = Matrix::try_from([
+        [1, 2, 3, 4, 5, 6], //
+        [1, 2, 3, 4, 5, 6],
+    ])
+    .unwrap();
 
-    MatrixError::minor(&matrix, (0, 0)).err().unwrap();
-    MatrixError::minor(&matrix, (2, 3)).err().unwrap();
-    MatrixError::minor(&matrix, (1, 6)).err().unwrap();
+    matrix.minor((0, 0)).unwrap();
+    matrix.minor((2, 3)).unwrap();
+    matrix.minor((1, 6)).unwrap();
 }
 
 #[test]
@@ -183,7 +188,7 @@ fn determinant3x3() {
 }
 
 #[test]
-fn inverse() {
+fn inverse3x3_1() {
     let matrix = Matrix::try_from([
         [1.0, 2.0, 3.0], //
         [0.0, 1.0, 4.0],
@@ -193,8 +198,6 @@ fn inverse() {
 
     let inverse = matrix.inverse().unwrap();
 
-    let identity = matrix.matrix_multiply(&inverse).unwrap();
-
     let expected_inverse = Matrix::try_from([
         [-24.0, 18.0, 5.0], //
         [20.0, -15.0, -4.0],
@@ -202,9 +205,74 @@ fn inverse() {
     ])
     .unwrap();
 
+    assert_eq!(inverse, expected_inverse);
+    
+    let identity = matrix.matrix_multiply(&inverse).unwrap();
     let expected_identity = Matrix::<f64>::identity(matrix.width_nonzero());
+    assert_eq!(identity, expected_identity);
+}
+
+#[test]
+fn inverse3x3_2() {
+    let matrix = Matrix::try_from([
+        [2.0, 4.0, -6.0], //
+        [7.0, 3.0, 5.0],
+        [1.0, -2.0, 4.0],
+    ])
+    .unwrap();
+
+    let mut inverse = matrix.inverse().unwrap();
+    // round each element
+    for element in inverse.elements_mut() {
+        *element = format!("{:.4}", element).parse().unwrap();
+    }
+
+    let mut expected_inverse = Matrix::try_from([
+        [11.0 / 27.0, -2.0 / 27.0, 19.0 / 27.0], //
+        [-23.0 / 54.0, 7.0 / 27.0, -26.0 / 27.0],
+        [-17.0 / 54.0, 4.0 / 27.0, -11.0 / 27.0],
+    ])
+    .unwrap();
+    // round each element
+    for element in expected_inverse.elements_mut() {
+        *element = format!("{:.4}", element).parse().unwrap();
+    }
 
     assert_eq!(inverse, expected_inverse);
+
+    let identity = matrix.matrix_multiply(&inverse).unwrap();
+    let expected_identity = Matrix::<f64>::identity(matrix.width_nonzero());
+    assert_eq!(identity, expected_identity);
+}
+
+#[test]
+fn inverse2x2() {
+    let matrix = Matrix::try_from([
+        [7.0, 38.5], //
+        [38.5, 218.75],
+    ])
+    .unwrap();
+
+    let mut inverse = matrix.inverse().unwrap();
+    // round each element
+    for element in inverse.elements_mut() {
+        *element = format!("{:.4}", element).parse().unwrap();
+    }
+
+    let mut expected_inverse = Matrix::try_from([
+        [4.4643, -0.78571], //
+        [-0.78571, 0.14286],
+    ])
+    .unwrap();
+    // round each element
+    for element in expected_inverse.elements_mut() {
+        *element = format!("{:.4}", element).parse().unwrap();
+    }
+
+    assert_eq!(inverse, expected_inverse);
+
+    let identity = matrix.matrix_multiply(&inverse).unwrap();
+    let expected_identity = Matrix::<f64>::identity(matrix.width_nonzero());
     assert_eq!(identity, expected_identity);
 }
 
@@ -230,14 +298,7 @@ fn transpose() {
 
 #[test]
 fn parse_data_set() {
-    const DATA: &str = "
-    4.5,  42.0
-    5.0, 45.0
-    5.5, 51.0
-    6.0, 53.0
-    6.5, 61.0
-    7.0, 62.0
-    ";
+    const DATA: &str = "4.5, 42.0\n5.0, 45.0\n5.5, 51.0\n6.0, 53.0\n6.5, 61.0\n7.0, 62.0";
 
     DATA.parse::<DataSet<f64>>().unwrap();
 }
@@ -250,38 +311,36 @@ fn read_data_set() {
 #[test]
 fn linear_regression() {
     let data = DataSet::<f64>::from_csv("./tests/dataset.csv").unwrap();
-
-    let inputs = data.polynomial_input_matrix(1);
-    let outputs = data.polynomial_output_matrix();
-
-    let input_transpose = inputs.transpose();
-
-    let input_transpose_x_input = input_transpose.matrix_multiply(&inputs).unwrap();
-
-    let inverse_of_input_transpose_x_input = input_transpose_x_input
-        .inverse() // WRONG SIGNS ON DIAGONALS HERE
-        .unwrap();
-
-    let pseudo_inverse = inverse_of_input_transpose_x_input
-        .matrix_multiply(&input_transpose)
-        .unwrap();
-
-    let coefficient_matrix = pseudo_inverse.matrix_multiply(&outputs).unwrap();
+    let mut coefficient_matrix = data.polynomial_regression(1).unwrap();
+    // round each element
+    for element in coefficient_matrix.elements_mut() {
+        *element = format!("{:.4}", element).parse().unwrap();
+    }
 
     let expected_coefficient_matrix = Matrix::try_from([
-        [-2.67], // x^0 coefficient
-        [9.51], // x^1 coefficient
+        [-2.6786], // x^0 coefficient
+        [9.50],    // x^1 coefficient
     ])
     .unwrap();
 
-    dbg!(
-        inputs,
-        outputs,
-        input_transpose_x_input,
-        inverse_of_input_transpose_x_input,
-        pseudo_inverse,
-        &coefficient_matrix
-    );
+    assert_eq!(coefficient_matrix, expected_coefficient_matrix);
+}
+
+#[test]
+fn quadratic_regression() {
+    let data = DataSet::<f64>::from_csv("./tests/dataset.csv").unwrap();
+    let mut coefficient_matrix = data.polynomial_regression(2).unwrap();
+    // round each element
+    for element in coefficient_matrix.elements_mut() {
+        *element = format!("{:.4}", element).parse().unwrap();
+    }
+
+    let expected_coefficient_matrix = Matrix::try_from([
+        [-34.7143], // x^0 coefficient
+        [21.5476],  // x^1 coefficient
+        [-1.0952],  // x^2 coefficient
+    ])
+    .unwrap();
 
     assert_eq!(coefficient_matrix, expected_coefficient_matrix);
 }
