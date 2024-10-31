@@ -35,7 +35,13 @@ impl<E> Matrix<E> {
     }
     /// Set the `self[index] = value` if index is valid
     pub fn set_element(&mut self, index: impl Into<MatrixIndex>, value: E) -> Option<()> {
-        return self.get_element_mut(index).map(|element| *element = value);
+        return match self.get_element_mut(index) {
+            Some(element) => {
+                *element = value;
+                Some(())
+            }
+            None => None,
+        };
     }
     pub fn get_row_mut(&mut self, index: impl Into<MatrixIndex>) -> Option<&mut [E]> {
         let index = index.into();
