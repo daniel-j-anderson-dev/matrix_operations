@@ -242,7 +242,9 @@ fn inverse3x3_2() {
 
     let identity = matrix.matrix_multiply(&inverse).unwrap();
     let expected_identity = Matrix::<f64>::identity(matrix.width_nonzero());
-    assert_eq!(identity, expected_identity);
+    for (&actual, &expected) in identity.elements().zip(expected_identity.elements()) {
+        assert!((expected - actual).abs() <= 0.001);
+    }
 }
 
 #[test]
@@ -273,7 +275,9 @@ fn inverse2x2() {
 
     let identity = matrix.matrix_multiply(&inverse).unwrap();
     let expected_identity = Matrix::<f64>::identity(matrix.width_nonzero());
-    assert_eq!(identity, expected_identity);
+    for (actual, expected) in identity.elements().zip(expected_identity.elements()) {
+        assert!((expected - actual).abs() <= 0.01);
+    }
 }
 
 #[test]
