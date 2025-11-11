@@ -206,7 +206,7 @@ fn inverse3x3_1() {
     .unwrap();
 
     assert_eq!(inverse, expected_inverse);
-    
+
     let identity = matrix.matrix_multiply(&inverse).unwrap();
     let expected_identity = Matrix::<f64>::identity(matrix.width_nonzero());
     assert_eq!(identity, expected_identity);
