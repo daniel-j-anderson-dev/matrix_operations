@@ -10,49 +10,50 @@ impl<E> Matrix<E> {
     pub fn width(&self) -> usize {
         return self.elements[0].len();
     }
+
     /// convenience method when a [NonZeroUsize] is needed
     pub fn width_nonzero(&self) -> NonZeroUsize {
-        return NonZeroUsize::new(self.width()).expect("width cannot be zero");
+        // type invariant
+        return unsafe { NonZeroUsize::new_unchecked(self.width()) };
     }
+
     pub fn height(&self) -> usize {
         return self.elements.len();
     }
+
     /// convenience method when a [NonZeroUsize] is needed
     pub fn height_nonzero(&self) -> NonZeroUsize {
-        return NonZeroUsize::new(self.height()).expect("height cannot be zero");
+        // type invariant
+        return unsafe { NonZeroUsize::new_unchecked(self.height()) };
+    }
+
+    pub fn indexes(&self) -> impl Iterator<Item = MatrixIndex> {
+        let height = self.height();
+        let width = self.width();
+
+        (0..height).flat_map(move |row| (0..width).map(move |column| MatrixIndex { row, column }))
     }
 }
 impl<E> Matrix<E> {
-    pub fn get_row(&self, index: MatrixIndex) -> Option<&[E]> {
-        return self.elements.get(index.row()).map(|row| row.as_ref());
+    pub fn row(&self, row_index: usize) -> Option<&[E]> {
+        return self.elements.get(row_index).map(|row| row.as_ref());
     }
     pub fn get_element(&self, index: impl Into<MatrixIndex>) -> Option<&E> {
         let index = index.into();
         return self
             .elements
-            .get(index.row())
-            .and_then(|row| row.get(index.column()));
+            .get(index.row)
+            .and_then(|row| row.get(index.column));
     }
-    /// Set the `self[index] = value` if index is valid
-    pub fn set_element(&mut self, index: impl Into<MatrixIndex>, value: E) -> Option<()> {
-        return match self.get_element_mut(index) {
-            Some(element) => {
-                *element = value;
-                Some(())
-            }
-            None => None,
-        };
-    }
-    pub fn get_row_mut(&mut self, index: impl Into<MatrixIndex>) -> Option<&mut [E]> {
-        let index = index.into();
-        return self.elements.get_mut(index.row()).map(|row| row.as_mut());
+    pub fn row_mut(&mut self, row_index: usize) -> Option<&mut [E]> {
+        return self.elements.get_mut(row_index).map(|row| row.as_mut());
     }
     pub fn get_element_mut(&mut self, index: impl Into<MatrixIndex>) -> Option<&mut E> {
         let index = index.into();
         return self
             .elements
-            .get_mut(index.row())
-            .and_then(|row| row.get_mut(index.column()));
+            .get_mut(index.row)
+            .and_then(|row| row.get_mut(index.column));
     }
 }
 impl<E> Matrix<E> {
@@ -98,11 +99,19 @@ impl<E> Matrix<E> {
     }
 }
 impl<E: Num + Copy> Matrix<E> {
+    pub unsafe fn zeros_unchecked(height: usize, width: usize) -> Self {
+        Self {
+            elements: (0..height)
+                .map(|_| (0..width).map(|_| E::zero()).collect())
+                .collect(),
+        }
+    }
     pub fn zeros(height: NonZeroUsize, width: NonZeroUsize) -> Self {
-        return Matrix {
-            elements: vec![vec![E::zero(); width.get()].into_boxed_slice(); height.get()]
-                .into_boxed_slice(),
-        };
+        Self {
+            elements: (0..height.get())
+                .map(|_| (0..width.get()).map(|_| E::zero()).collect())
+                .collect(),
+        }
     }
     pub fn identity(size: NonZeroUsize) -> Self {
         let mut identity = Self::zeros(size, size);
@@ -124,48 +133,32 @@ pub mod trait_impls;
 /// `MatrixIndex(row_index, column_index)`
 #[derive(Debug, Clone, Copy)]
 pub struct MatrixIndex {
-    row: usize,
-    column: usize,
+    pub row: usize,
+    pub column: usize,
 }
 impl MatrixIndex {
-    pub fn row(&self) -> usize {
-        return self.row;
+    pub fn iter(row: usize, column: usize) -> impl Iterator<Item = Self> {
+        (0..row).flat_map(move |row| (0..column).map(move |column| Self { row, column }))
     }
-    pub fn column(&self) -> usize {
-        return self.column;
-    }
-
-    /// Add one to the row index
-    pub fn increment_row(&mut self) {
-        self.row += 1;
-    }
-
-    /// Add one to the column index
-    pub fn increment_column(&mut self) {
-        self.column += 1;
-    }
-
-    pub fn set_row(&mut self, row_index: usize) {
-        self.row = row_index;
-    }
-
-    pub fn set_column(&mut self, column_index: usize) {
-        self.column = column_index;
-    }
-
     pub fn transpose(&self) -> Self {
         return Self {
             row: self.column,
             column: self.row,
         };
     }
+    pub fn intersects(&self, other: Self) -> bool {
+        self.column == other.column || self.row == other.row
+    }
+}
+impl From<[usize; 2]> for MatrixIndex {
+    /// `[row_index, column_index]`
+    fn from([row, column]: [usize; 2]) -> Self {
+        MatrixIndex { row, column }
+    }
 }
 impl From<(usize, usize)> for MatrixIndex {
     /// `(row_index, column_index)`
-    fn from(value: (usize, usize)) -> Self {
-        return MatrixIndex {
-            row: value.0,
-            column: value.1,
-        };
+    fn from((row, column): (usize, usize)) -> Self {
+        MatrixIndex { row, column }
     }
 }
