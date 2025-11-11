@@ -16,8 +16,8 @@ impl<E> Index<usize> for Matrix<E> {
 impl<E, I: Into<MatrixIndex>> Index<I> for Matrix<E> {
     type Output = E;
     fn index(&self, index: I) -> &Self::Output {
-        let index = index.into();
-        return self.elements.index(index.row()).index(index.column());
+        let MatrixIndex { row, column } = index.into();
+        return self.elements.index(row).index(column);
     }
 }
 
@@ -28,11 +28,8 @@ impl<E> IndexMut<usize> for Matrix<E> {
 }
 impl<E, I: Into<MatrixIndex>> IndexMut<I> for Matrix<E> {
     fn index_mut(&mut self, index: I) -> &mut Self::Output {
-        let index = index.into();
-        return self
-            .elements
-            .index_mut(index.row())
-            .index_mut(index.column());
+        let MatrixIndex { row, column } = index.into();
+        return self.elements.index_mut(row).index_mut(column);
     }
 }
 
@@ -62,8 +59,9 @@ impl<Element, const WIDTH: usize, const HEIGHT: usize> TryFrom<[[Element; WIDTH]
     /// ```
     fn try_from(elements: [[Element; WIDTH]; HEIGHT]) -> Result<Self, Self::Error> {
         if WIDTH == 0 || HEIGHT == 0 {
-            return Err(DimensionError::Zero.into());
+            Err(DimensionError::Zero)?;
         }
+
         return Ok(Matrix {
             elements: elements.into_iter().map(|row| Box::new(row) as _).collect(),
         });
