@@ -1,7 +1,4 @@
-use std::{
-    num::NonZeroUsize,
-    ops::Neg,
-};
+use std::ops::Neg;
 
 use num::{Float, Num};
 
@@ -35,15 +32,13 @@ impl<E: Num + Copy> Matrix<E> {
         for lhs_row_index in 0..self.height() {
             for rhs_col_index in 0..rhs.width() {
                 let mut dot_product = E::zero();
+                for i in 0..self.width() {
+                    let lhs_row_element = self[lhs_row_index][i];
+                    let rhs_column_element = rhs[i][rhs_col_index];
 
-                // I could have used rhs.height() since [MatrixError::multiplication] will return [Result::Err] if `self.width` != `rhs.height`
-                for element_index in 0..self.width() {
-                    let lhs_element = self[lhs_row_index][element_index];
-                    let rhs_element = rhs[element_index][rhs_col_index];
-
-                    let element_product = lhs_element * rhs_element;
-
-                    dot_product = dot_product + element_product;
+                    let scalar_product = lhs_row_element * rhs_column_element;
+                    
+                    dot_product = dot_product + scalar_product;
                 }
 
                 product[lhs_row_index][rhs_col_index] = dot_product;
@@ -115,29 +110,17 @@ impl<E: Num + Copy> Matrix<E> {
 
         MatrixError::minor(self, excluded_index)?;
 
-        let mut minor = Matrix::zeros(
-            NonZeroUsize::new(self.height() - 1).expect("height cannot be zero"),
-            NonZeroUsize::new(self.width() - 1).expect("width cannot be zero"),
-        );
+        // SAFETY: MatrixError::minor checks that height and width are >= 2
+        let mut minor = unsafe { Matrix::zeros_unchecked(self.height() - 1, self.width() - 1) };
 
-        let mut minor_index = MatrixIndex::from((0, 0));
-        for self_row_index in 0..self.height() {
-            if self_row_index == excluded_index.row() {
-                continue;
-            }
+        let minor_indexes = MatrixIndex::iter(self.height() - 1, self.width() - 1);
+        let self_indexes = MatrixIndex::iter(self.height(), self.width())
+            .filter(|self_index| !self_index.intersects(excluded_index));
 
-            minor_index.set_column(0);
-            for self_column_index in 0..self.width() {
-                if self_column_index == excluded_index.column() {
-                    continue;
-                }
-
-                minor.set_element(minor_index, self[self_row_index][self_column_index]);
-
-                minor_index.increment_column();
-            }
-
-            minor_index.increment_row();
+        for (self_index, minor_index) in self_indexes.zip(minor_indexes) {
+            minor
+                .get_element_mut(minor_index)
+                .map(|minor_element| *minor_element = self[self_index]);
         }
 
         return Ok(minor);
@@ -155,7 +138,7 @@ impl<E: Num + Neg<Output = E> + Copy> Matrix<E> {
     pub fn cofactor(&self, index: impl Into<MatrixIndex>) -> Result<E, MatrixError> {
         let index = index.into();
 
-        let sign = if (index.row() + index.column()) % 2 == 0 {
+        let sign = if (index.row + index.column) % 2 == 0 {
             E::one()
         } else {
             -E::one()
