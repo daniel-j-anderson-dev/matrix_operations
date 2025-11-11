@@ -2,14 +2,14 @@ use std::num::NonZeroUsize;
 
 use num::Float;
 
-use crate::{DataSet, Matrix, MatrixError};
+use crate::{Data, Matrix, MatrixError};
 
 pub trait Regression<T> {
     type Error;
     fn polynomial_regression(&self, degree: usize) -> Result<Matrix<T>, Self::Error>;
 }
 
-impl<F: Float> DataSet<F> {
+impl<F: Float> Data<F> {
     pub fn polynomial_input_matrix(&self, degree: usize) -> Matrix<F> {
         // SAFETY: any usize value + 1 is always > 0
         let width = unsafe { NonZeroUsize::new_unchecked(degree + 1) };
@@ -19,7 +19,7 @@ impl<F: Float> DataSet<F> {
 
         for (index, element) in input_matrix.elements_mut_enumerated() {
             // SAFETY: row_index is inbounds because the input_matrix was declared with height
-            let input_value = unsafe { self.data().get_unchecked(index.row).input() };
+            let input_value = unsafe { self.as_slice().get_unchecked(index.row).input() };
 
             *element = input_value.powi(index.column as i32);
         }
@@ -36,7 +36,7 @@ impl<F: Float> DataSet<F> {
 
         for row_index in 0..height.get() {
             // SAFETY: row_index is inbounds because the output_matrix was declared with height
-            let output_value = unsafe { self.data().get_unchecked(row_index).output() };
+            let output_value = unsafe { self.as_slice().get_unchecked(row_index).output() };
 
             output_matrix[(row_index, 0)] = *output_value;
         }
@@ -45,7 +45,7 @@ impl<F: Float> DataSet<F> {
     }
 }
 
-impl<F: Float> Regression<F> for DataSet<F> {
+impl<F: Float> Regression<F> for Data<F> {
     type Error = MatrixError;
     fn polynomial_regression(&self, degree: usize) -> Result<Matrix<F>, Self::Error> {
         let input_matrix = self.polynomial_input_matrix(degree);

@@ -300,17 +300,17 @@ fn transpose() {
 fn parse_data_set() {
     const DATA: &str = "4.5, 42.0\n5.0, 45.0\n5.5, 51.0\n6.0, 53.0\n6.5, 61.0\n7.0, 62.0";
 
-    DATA.parse::<DataSet<f64>>().unwrap();
+    DATA.parse::<Data<f64>>().unwrap();
 }
 
 #[test]
 fn read_data_set() {
-    DataSet::<f64>::from_csv("./tests/dataset.csv").unwrap();
+    Data::<f64>::from_csv("./tests/dataset.csv").unwrap();
 }
 
 #[test]
 fn linear_regression() {
-    let data = DataSet::<f64>::from_csv("./tests/dataset.csv").unwrap();
+    let data = Data::<f64>::from_csv("./tests/dataset.csv").unwrap();
     let mut coefficient_matrix = data.polynomial_regression(1).unwrap();
     // round each element
     for element in coefficient_matrix.elements_mut() {
@@ -328,7 +328,7 @@ fn linear_regression() {
 
 #[test]
 fn quadratic_regression() {
-    let data = DataSet::<f64>::from_csv("./tests/dataset.csv").unwrap();
+    let data = Data::<f64>::from_csv("./tests/dataset.csv").unwrap();
     let mut coefficient_matrix = data.polynomial_regression(2).unwrap();
     // round each element
     for element in coefficient_matrix.elements_mut() {

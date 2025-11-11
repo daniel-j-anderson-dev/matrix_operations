@@ -2,11 +2,11 @@ use std::{fs, num::NonZeroUsize, path::Path, str::FromStr};
 
 use crate::error::{DataSetError, ParseDataSetError};
 
-pub struct DataPoint<T> {
+pub struct Datum<T> {
     input: T,
     output: T,
 }
-impl<T> DataPoint<T> {
+impl<T> Datum<T> {
     pub fn input(&self) -> &T {
         return &self.input;
     }
@@ -15,26 +15,24 @@ impl<T> DataPoint<T> {
     }
 }
 
-pub struct DataSet<T> {
-    data: Vec<DataPoint<T>>,
-}
+pub struct Data<T>(Box<[Datum<T>]>);
 
-impl<T> DataSet<T> {
+impl<T> Data<T> {
     pub fn len(&self) -> usize {
-        return self.data.len();
+        return self.0.len();
     }
     pub fn len_nonzero(&self) -> NonZeroUsize {
         return NonZeroUsize::new(self.len()).expect("Length can not be zero");
     }
-    pub fn data(&self) -> &[DataPoint<T>] {
-        return &self.data;
+    pub fn as_slice(&self) -> &[Datum<T>] {
+        return &self.0;
     }
-    pub fn data_mut(&mut self) -> &mut [DataPoint<T>] {
-        return &mut self.data;
+    pub fn as_slice_mut(&mut self) -> &mut [Datum<T>] {
+        return &mut self.0;
     }
 }
 
-impl<T> DataSet<T>
+impl<T> Data<T>
 where
     T: FromStr,
     T::Err: std::error::Error + 'static,
@@ -62,7 +60,7 @@ where
     }
 }
 
-impl<T> FromStr for DataSet<T>
+impl<T> FromStr for Data<T>
 where
     T: FromStr,
     T::Err: std::error::Error + 'static,
@@ -94,23 +92,23 @@ where
                 return Err(ParseDataSetError::too_many_columns(line_index + 1));
             }
 
-            let data_point = DataPoint { input, output };
+            let data_point = Datum { input, output };
 
             data.push(data_point);
         }
 
-        return Ok(Self { data });
+        return Ok(Self(data.into_boxed_slice()));
     }
 }
 
-impl<T: Copy, const N: usize> TryFrom<[(T, T); N]> for DataSet<T> {
+impl<T: Copy, const N: usize> TryFrom<[(T, T); N]> for Data<T> {
     type Error = DataSetError;
     fn try_from(value: [(T, T); N]) -> Result<Self, Self::Error> {
         TryFrom::try_from(value.as_slice())
     }
 }
 
-impl<T: Copy> TryFrom<&[(T, T)]> for DataSet<T> {
+impl<T: Copy> TryFrom<&[(T, T)]> for Data<T> {
     type Error = DataSetError;
     fn try_from(value: &[(T, T)]) -> Result<Self, Self::Error> {
         if value.len() == 0 {
@@ -119,14 +117,14 @@ impl<T: Copy> TryFrom<&[(T, T)]> for DataSet<T> {
 
         let data = value
             .into_iter()
-            .map(|&(input, output)| DataPoint { input, output })
+            .map(|&(input, output)| Datum { input, output })
             .collect();
 
-        return Ok(Self { data });
+        return Ok(Self(data));
     }
 }
 
-impl<T: Copy, const N: usize> TryFrom<([T; N], [T; N])> for DataSet<T> {
+impl<T: Copy, const N: usize> TryFrom<([T; N], [T; N])> for Data<T> {
     type Error = DataSetError;
 
     fn try_from((inputs, outputs): ([T; N], [T; N])) -> Result<Self, Self::Error> {
@@ -137,9 +135,9 @@ impl<T: Copy, const N: usize> TryFrom<([T; N], [T; N])> for DataSet<T> {
         let data = inputs
             .into_iter()
             .zip(outputs)
-            .map(|(input, output)| DataPoint { input, output })
+            .map(|(input, output)| Datum { input, output })
             .collect();
 
-        return Ok(Self { data });
+        return Ok(Self(data));
     }
 }
