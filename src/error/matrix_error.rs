@@ -115,13 +115,14 @@ impl MatrixError {
     ///   - if `excluded_row_index` >= `matrix.height`
     ///   - if `excluded_column_index` >= `matrix.width`
     ///   - if `matrix` is not square
+    ///   - if `matrix.width() < 2` or `matrix.height() < 2`
     pub fn minor<E>(matrix: &Matrix<E>, index: impl Into<MatrixIndex>) -> Result<(), Self> {
         let index = index.into();
 
-        if index.row() >= matrix.height() {
-            Err(MinorError::NoSuchRow(index.row()))?
-        } else if index.column() >= matrix.width() {
-            Err(MinorError::NoSuchColumn(index.column()))?
+        if index.row >= matrix.height() {
+            Err(MinorError::NoSuchRow(index.row))?
+        } else if index.column >= matrix.width() {
+            Err(MinorError::NoSuchColumn(index.column))?
         } else if matrix.width() == 0 || matrix.height() == 0 {
             Err(MinorError::from(DimensionError::Zero))?
         } else if matrix.width() < 2 || matrix.height() < 2 {
