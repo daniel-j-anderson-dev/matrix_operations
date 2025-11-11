@@ -17,18 +17,13 @@ impl<F: Float> DataSet<F> {
 
         let mut input_matrix = Matrix::zeros(height, width);
 
-        for column_index in 0..width.get() {
-            let exponent = column_index as i32;
+        for (index, element) in input_matrix.elements_mut_enumerated() {
+            // SAFETY: row_index is inbounds because the input_matrix was declared with height
+            let input_value = unsafe { self.data().get_unchecked(index.row).input() };
 
-            for row_index in 0..height.get() {
-                // SAFETY: row_index is inbounds because the input_matrix was declared with height
-                let input_value = unsafe { self.data().get_unchecked(row_index).input() };
-
-                let input_matrix_value = input_value.powi(exponent);
-
-                input_matrix[(row_index, column_index)] = input_matrix_value;
-            }
+            *element = input_value.powi(index.column as i32);
         }
+
         return input_matrix;
     }
 
